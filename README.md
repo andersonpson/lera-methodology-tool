@@ -9,6 +9,7 @@
 - 本地数据库：`restaurant-database/restaurant.db`
 - Web 启动脚本：`scripts/start-web.sh`
 - Web 部署说明：`DEPLOY_WEB.md`
+- Webhook 自动部署说明：`AUTO_DEPLOY_WEBHOOK.md`
 
 ## 有用文件与作用
 

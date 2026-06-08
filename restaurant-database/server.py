@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import sqlite3
+import subprocess
+import threading
+import time
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -15,6 +20,10 @@ DB_PATH = Path(
     os.environ.get("LERA_DB_PATH", str(ROOT / "restaurant-database" / "restaurant.db"))
 ).expanduser().resolve()
 INSTANCE_ID = os.environ.get("LERA_INSTANCE_ID", "")
+DEPLOY_WEBHOOK_SECRET = os.environ.get("LERA_DEPLOY_WEBHOOK_SECRET", "")
+DEPLOY_REPO = os.environ.get("LERA_DEPLOY_REPO", "")
+DEPLOY_BRANCH = os.environ.get("LERA_DEPLOY_BRANCH", "main")
+DEPLOY_RESTART = os.environ.get("LERA_DEPLOY_RESTART", "1").strip().lower() not in {"0", "false", "no", "off"}
 
 
 def get_query_param(query: str, *keys: str) -> str:
@@ -240,6 +249,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/api/deploy-webhook":
+            return self._handle_deploy_webhook()
         if parsed.path == "/api/dishes":
             return self._handle_post_dish()
         if parsed.path == "/api/recipe":
@@ -273,10 +284,123 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
-    def _read_json(self):
+    def _read_body(self):
         length = int(self.headers.get("Content-Length", "0"))
-        raw = self.rfile.read(length) if length else b"{}"
+        return self.rfile.read(length) if length else b""
+
+    def _read_json(self):
+        raw = self._read_body() or b"{}"
         return json.loads(raw.decode("utf-8"))
+
+    def _verify_github_signature(self, raw_body):
+        signature = self.headers.get("X-Hub-Signature-256", "")
+        if not DEPLOY_WEBHOOK_SECRET or not signature.startswith("sha256="):
+            return False
+        expected = "sha256=" + hmac.new(
+            DEPLOY_WEBHOOK_SECRET.encode("utf-8"),
+            raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(signature, expected)
+
+    def _schedule_process_restart(self):
+        def delayed_exit():
+            time.sleep(1.0)
+            os._exit(0)
+
+        threading.Thread(target=delayed_exit, daemon=True).start()
+
+    def _handle_deploy_webhook(self):
+        if not DEPLOY_WEBHOOK_SECRET:
+            return self._send_json(
+                {"ok": False, "error": "deploy-webhook-not-configured"},
+                status=HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+
+        raw = self._read_body()
+        if not self._verify_github_signature(raw):
+            return self._send_json(
+                {"ok": False, "error": "invalid-signature"},
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        try:
+            payload = json.loads((raw or b"{}").decode("utf-8"))
+        except json.JSONDecodeError:
+            return self._send_json(
+                {"ok": False, "error": "invalid-json"},
+                status=HTTPStatus.BAD_REQUEST,
+            )
+
+        event = (self.headers.get("X-GitHub-Event") or "").strip()
+        delivery = (self.headers.get("X-GitHub-Delivery") or "").strip()
+
+        if event == "ping":
+            zen = str(payload.get("zen", "")).strip()
+            return self._send_json({"ok": True, "event": "ping", "delivery": delivery, "zen": zen})
+
+        if event != "push":
+            return self._send_json({"ok": True, "ignored": True, "reason": f"unsupported-event:{event or 'unknown'}"})
+
+        full_name = str(payload.get("repository", {}).get("full_name", "")).strip()
+        expected_repo = DEPLOY_REPO.strip()
+        if expected_repo and full_name != expected_repo:
+            return self._send_json(
+                {
+                    "ok": True,
+                    "ignored": True,
+                    "reason": "repository-mismatch",
+                    "expected_repo": expected_repo,
+                    "received_repo": full_name,
+                }
+            )
+
+        ref = str(payload.get("ref", "")).strip()
+        expected_ref = f"refs/heads/{DEPLOY_BRANCH}"
+        if ref != expected_ref:
+            return self._send_json(
+                {
+                    "ok": True,
+                    "ignored": True,
+                    "reason": "branch-mismatch",
+                    "expected_ref": expected_ref,
+                    "received_ref": ref,
+                }
+            )
+
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "pull", "--ff-only", "origin", DEPLOY_BRANCH],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        output = "\n".join(part for part in [result.stdout.strip(), result.stderr.strip()] if part).strip()
+        if result.returncode != 0:
+            return self._send_json(
+                {
+                    "ok": False,
+                    "error": "git-pull-failed",
+                    "delivery": delivery,
+                    "output": output,
+                },
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+
+        restart_scheduled = DEPLOY_RESTART and "Already up to date." not in output
+        if restart_scheduled:
+            self._schedule_process_restart()
+
+        self._send_json(
+            {
+                "ok": True,
+                "event": event,
+                "delivery": delivery,
+                "repository": full_name,
+                "ref": ref,
+                "restart_scheduled": restart_scheduled,
+                "output": output or "git-pull-ok",
+            }
+        )
 
     def _send_json(self, payload, status=HTTPStatus.OK):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")

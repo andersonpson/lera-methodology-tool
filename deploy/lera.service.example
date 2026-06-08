@@ -10,6 +10,10 @@ Environment=LERA_ROOT=/opt/lera
 Environment=LERA_DB_PATH=/opt/lera/restaurant-database/restaurant.db
 Environment=LERA_HOST=127.0.0.1
 Environment=LERA_PORT=8000
+Environment=LERA_DEPLOY_REPO=andersonpson/lera-methodology-tool
+Environment=LERA_DEPLOY_BRANCH=main
+Environment=LERA_DEPLOY_WEBHOOK_SECRET=replace-with-a-long-random-secret
+Environment=LERA_DEPLOY_RESTART=1
 ExecStart=/opt/lera/scripts/start-web.sh
 Restart=always
 RestartSec=3
