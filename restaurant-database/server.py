@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import threading
 import time
+from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -24,6 +25,153 @@ DEPLOY_WEBHOOK_SECRET = os.environ.get("LERA_DEPLOY_WEBHOOK_SECRET", "")
 DEPLOY_REPO = os.environ.get("LERA_DEPLOY_REPO", "")
 DEPLOY_BRANCH = os.environ.get("LERA_DEPLOY_BRANCH", "main")
 DEPLOY_RESTART = os.environ.get("LERA_DEPLOY_RESTART", "1").strip().lower() not in {"0", "false", "no", "off"}
+BACKUP_DIR = Path(
+    os.environ.get("LERA_BACKUP_DIR", str(ROOT / "backups"))
+).expanduser().resolve()
+BACKUP_RETENTION = max(5, int(os.environ.get("LERA_BACKUP_RETENTION", "30")))
+AUTO_BACKUP_INTERVAL_SECONDS = max(
+    3600, int(os.environ.get("LERA_AUTO_BACKUP_INTERVAL_SECONDS", "43200"))
+)
+BACKUP_LOCK = threading.RLock()
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def ensure_backup_dir() -> None:
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def normalize_backup_source(value: str) -> str:
+    cleaned = "".join(char if char.isalnum() else "-" for char in str(value or "").strip().lower())
+    normalized = "-".join(part for part in cleaned.split("-") if part)
+    return normalized or "manual"
+
+
+def build_backup_filename(source: str) -> str:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
+    return f"lera-backup-{timestamp}__{normalize_backup_source(source)}.db"
+
+
+def detect_backup_source(path: Path) -> str:
+    suffix = path.stem.split("__", 1)
+    if len(suffix) == 2 and suffix[1].strip():
+        return suffix[1].strip()
+    return "manual"
+
+
+def snapshot_metadata(path: Path) -> dict:
+    stat = path.stat()
+    created_at = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
+    return {
+        "id": path.name,
+        "filename": path.name,
+        "source": detect_backup_source(path),
+        "created_at": created_at.isoformat().replace("+00:00", "Z"),
+        "created_at_epoch": int(stat.st_mtime),
+        "size_bytes": stat.st_size,
+    }
+
+
+def list_backup_snapshots() -> list[dict]:
+    ensure_backup_dir()
+    snapshots = []
+    for path in sorted(BACKUP_DIR.glob("lera-backup-*.db"), key=lambda item: item.stat().st_mtime, reverse=True):
+        snapshots.append(snapshot_metadata(path))
+    return snapshots
+
+
+def get_backup_snapshot_summary() -> dict:
+    snapshots = list_backup_snapshots()
+    latest_auto = next((item for item in snapshots if item["source"] == "auto"), None)
+    latest_manual = next((item for item in snapshots if item["source"] == "manual"), None)
+    return {
+        "snapshots": snapshots,
+        "latest_auto": latest_auto,
+        "latest_manual": latest_manual,
+        "retention": BACKUP_RETENTION,
+        "auto_interval_seconds": AUTO_BACKUP_INTERVAL_SECONDS,
+    }
+
+
+def prune_backup_snapshots() -> None:
+    snapshots = list_backup_snapshots()
+    for item in snapshots[BACKUP_RETENTION:]:
+        try:
+            resolve_backup_snapshot_path(item["id"]).unlink(missing_ok=True)
+        except FileNotFoundError:
+            continue
+
+
+def resolve_backup_snapshot_path(snapshot_id: str) -> Path:
+    ensure_backup_dir()
+    candidate = (BACKUP_DIR / Path(snapshot_id).name).resolve()
+    if candidate.parent != BACKUP_DIR or not candidate.exists() or candidate.suffix.lower() != ".db":
+        raise FileNotFoundError(snapshot_id)
+    return candidate
+
+
+def create_backup_snapshot(source: str = "manual") -> dict:
+    ensure_backup_dir()
+    target_path = BACKUP_DIR / build_backup_filename(source)
+    source_conn = None
+    target_conn = None
+    with BACKUP_LOCK:
+        try:
+            source_conn = connect_db()
+            target_conn = sqlite3.connect(target_path)
+            source_conn.backup(target_conn)
+        finally:
+            if target_conn is not None:
+                target_conn.close()
+            if source_conn is not None:
+                source_conn.close()
+    prune_backup_snapshots()
+    return snapshot_metadata(target_path)
+
+
+def restore_backup_snapshot(snapshot_id: str) -> dict:
+    snapshot_path = resolve_backup_snapshot_path(snapshot_id)
+    safety_snapshot = create_backup_snapshot("before-restore")
+    source_conn = None
+    target_conn = None
+    with BACKUP_LOCK:
+        try:
+            source_conn = sqlite3.connect(snapshot_path)
+            target_conn = sqlite3.connect(DB_PATH)
+            source_conn.backup(target_conn)
+        finally:
+            if target_conn is not None:
+                target_conn.close()
+            if source_conn is not None:
+                source_conn.close()
+    return {
+        "restored": snapshot_metadata(snapshot_path),
+        "safety_snapshot": safety_snapshot,
+    }
+
+
+def maybe_create_automatic_snapshot() -> dict | None:
+    snapshots = list_backup_snapshots()
+    latest_auto = next((item for item in snapshots if item["source"] == "auto"), None)
+    now_epoch = int(time.time())
+    if latest_auto and now_epoch - int(latest_auto["created_at_epoch"]) < AUTO_BACKUP_INTERVAL_SECONDS:
+        return None
+    return create_backup_snapshot("auto")
+
+
+def start_auto_backup_worker() -> None:
+    def worker():
+        while True:
+            try:
+                maybe_create_automatic_snapshot()
+            except Exception as exc:
+                print(f"[lera] automatic backup failed: {exc}")
+            time.sleep(min(3600, AUTO_BACKUP_INTERVAL_SECONDS))
+
+    maybe_create_automatic_snapshot()
+    threading.Thread(target=worker, daemon=True).start()
 
 
 def get_query_param(query: str, *keys: str) -> str:
@@ -230,8 +378,19 @@ class Handler(SimpleHTTPRequestHandler):
                 ROOT / "restaurant-database" / "methodology-list.html",
             ]
             files_ok = all(path.exists() for path in required_files)
+            backup_summary = get_backup_snapshot_summary()
             return self._send_json(
-                {"ok": True, "app": "lera", "files_ok": files_ok, "instance_id": INSTANCE_ID}
+                {
+                    "ok": True,
+                    "app": "lera",
+                    "files_ok": files_ok,
+                    "instance_id": INSTANCE_ID,
+                    "backup_summary": {
+                        "count": len(backup_summary["snapshots"]),
+                        "latest_auto": backup_summary["latest_auto"],
+                        "latest_manual": backup_summary["latest_manual"],
+                    },
+                }
             )
         if parsed.path == "/api/dishes":
             return self._handle_get_dishes(parsed.query)
@@ -245,6 +404,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self._handle_get_methodology(parsed.query)
         if parsed.path == "/api/backup":
             return self._handle_get_backup()
+        if parsed.path == "/api/backup-snapshots":
+            return self._handle_get_backup_snapshots()
+        if parsed.path == "/api/backup-file":
+            return self._handle_get_backup_file(parsed.query)
         return super().do_GET()
 
     def do_POST(self):
@@ -261,6 +424,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self._handle_post_methodology()
         if parsed.path == "/api/backup":
             return self._handle_post_backup()
+        if parsed.path == "/api/backup-snapshots":
+            return self._handle_post_backup_snapshot()
+        if parsed.path == "/api/backup-restore":
+            return self._handle_post_backup_restore()
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_DELETE(self):
@@ -414,6 +581,15 @@ class Handler(SimpleHTTPRequestHandler):
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_file_download(self, path: Path, filename: str, content_type="application/octet-stream"):
+        body = path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -1016,7 +1192,7 @@ class Handler(SimpleHTTPRequestHandler):
         with connect_db() as conn:
             payload = {
                 "version": 1,
-                "exported_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+                "exported_at": utc_now_iso(),
                 "codebook": [dict(row) for row in conn.execute("SELECT category, code, parent_code, label_zh, label_es, status, notes, created_at, updated_at FROM codebook ORDER BY category, code")],
                 "dishes": [dict(row) for row in conn.execute("SELECT * FROM dishes ORDER BY id")],
                 "recipes": [dict(row) for row in conn.execute("SELECT * FROM recipe_entries ORDER BY id")],
@@ -1032,6 +1208,7 @@ class Handler(SimpleHTTPRequestHandler):
         if missing:
             return self._send_json({"error": f"Missing backup sections: {', '.join(missing)}"}, status=HTTPStatus.BAD_REQUEST)
 
+        safety_snapshot = create_backup_snapshot("before-json-import")
         with connect_db() as conn:
             conn.execute("DELETE FROM methodology_records")
             conn.execute("DELETE FROM recipe_entries")
@@ -1094,11 +1271,42 @@ class Handler(SimpleHTTPRequestHandler):
                 payload.get("methodology_projects", []),
             )
             conn.commit()
-        self._send_json({"ok": True})
+        self._send_json({"ok": True, "safety_snapshot": safety_snapshot})
+
+    def _handle_get_backup_snapshots(self):
+        self._send_json({"ok": True, **get_backup_snapshot_summary()})
+
+    def _handle_post_backup_snapshot(self):
+        payload = self._read_json()
+        snapshot = create_backup_snapshot(payload.get("source", "manual"))
+        self._send_json({"ok": True, "snapshot": snapshot, **get_backup_snapshot_summary()})
+
+    def _handle_get_backup_file(self, query):
+        snapshot_id = get_query_param(query, "snapshot_id", "snapshotId", "id")
+        if not snapshot_id:
+            return self._send_json({"error": "Missing snapshot_id"}, status=HTTPStatus.BAD_REQUEST)
+        try:
+            snapshot_path = resolve_backup_snapshot_path(snapshot_id)
+        except FileNotFoundError:
+            return self._send_json({"error": "Snapshot not found"}, status=HTTPStatus.NOT_FOUND)
+        self._send_file_download(snapshot_path, snapshot_path.name, "application/x-sqlite3")
+
+    def _handle_post_backup_restore(self):
+        payload = self._read_json()
+        snapshot_id = str(payload.get("snapshot_id") or payload.get("snapshotId") or "").strip()
+        if not snapshot_id:
+            return self._send_json({"error": "Missing snapshot_id"}, status=HTTPStatus.BAD_REQUEST)
+        try:
+            result = restore_backup_snapshot(snapshot_id)
+            init_db()
+        except FileNotFoundError:
+            return self._send_json({"error": "Snapshot not found"}, status=HTTPStatus.NOT_FOUND)
+        self._send_json({"ok": True, **result, **get_backup_snapshot_summary()})
 
 
 def main():
     init_db()
+    start_auto_backup_worker()
     host = os.environ.get("LERA_HOST", "0.0.0.0")
     port = int(os.environ.get("LERA_PORT", "8000"))
     server = ThreadingHTTPServer((host, port), Handler)

@@ -5,6 +5,7 @@ electron-release/
 restaurant-database/__pycache__/
 restaurant-database/*.pyc
 restaurant-database/restaurant.db
+backups/
 _project_snapshots/
 笔记本整理/
 docs/

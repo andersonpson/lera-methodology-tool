@@ -18,12 +18,38 @@ function persistLanguage(lang) {
   } catch {}
 }
 
-const state = {
-  currentLang: getInitialLanguage()
+const elements = {
+  backupFileInput: document.getElementById("backup-file-input"),
+  backupStatus: document.getElementById("backup-status"),
+  backupMetrics: document.querySelector(".home-backup-metrics"),
+  backupRestoreField: document.querySelector(".home-backup-restore-field"),
+  backupListBlock: document.querySelector(".home-backup-list-block"),
+  backupList: document.getElementById("backup-list"),
+  createBackupButton: document.getElementById("create-backup-button"),
+  downloadSelectedBackupButton: document.getElementById("download-selected-backup-button"),
+  downloadJsonBackupButton: document.getElementById("download-json-backup-button"),
+  restoreSelect: document.getElementById("backup-restore-select"),
+  restoreButton: document.getElementById("restore-backup-button"),
+  cancelRestoreButton: document.getElementById("cancel-restore-button"),
+  importJsonBackupButton: document.getElementById("import-json-backup-button"),
+  backupRestoreNote: document.getElementById("backup-restore-note")
 };
 
-const backupInputEl = document.getElementById("backup-file-input");
-const backupStatusEl = document.getElementById("backup-status");
+const state = {
+  currentLang: getInitialLanguage(),
+  backup: {
+    supported: null,
+    loading: false,
+    busy: "",
+    snapshots: [],
+    latestAuto: null,
+    latestManual: null,
+    retention: 0,
+    autoIntervalSeconds: 0,
+    selectedSnapshotId: "",
+    restoreArmed: false
+  }
+};
 
 const i18n = {
   zh: {
@@ -56,15 +82,50 @@ const i18n = {
     codebookTitle: "代码管理",
     codebookCopy: "",
     open: "打开",
-    downloadBackup: "下载",
-    importBackup: "读取",
-    backupIdle: "",
-    backupDownloading: "正在准备备份…",
-    backupDownloaded: "已下载",
-    backupImporting: "正在读取备份…",
-    backupSuccess: "已读取",
-    backupFailed: "失败",
-    backupCancelled: "已取消"
+    backupCardEyebrow: "",
+    backupCardTitle: "备份与恢复",
+    backupCardCopy: "服务器自动保存数据库快照。",
+    backupLegacyCopy: "当前环境仅保留 JSON 备份。",
+    backupLatestAutoLabel: "自动",
+    backupLatestManualLabel: "手动",
+    backupCountLabel: "数量",
+    backupCreate: "立即备份",
+    backupDownloadSelected: "下载当前快照",
+    backupDownloadJson: "下载 JSON",
+    backupRestoreLabel: "恢复来源",
+    backupPrepareRestore: "准备恢复",
+    backupConfirmRestore: "确认恢复",
+    backupCancelRestore: "取消",
+    backupImportJson: "读取旧 JSON",
+    backupListEyebrow: "",
+    backupListTitle: "最近快照",
+    backupDefaultNote: "自动快照在后台进行，JSON 仅作旧备份兜底。",
+    backupEmptyNote: "等待第一份自动快照。",
+    backupLegacyNote: "如果在旧环境中工作，继续使用 JSON 备份即可。",
+    backupRestoreWarning: "恢复会直接覆盖当前数据库，系统会先另存一份恢复前快照。",
+    backupNoData: "尚无",
+    backupNoList: "还没有快照",
+    backupSourceAuto: "自动",
+    backupSourceManual: "手动",
+    backupSourceBeforeRestore: "恢复前",
+    backupSourceBeforeJsonImport: "导入前",
+    backupSourceFallback: "记录",
+    backupLoading: "正在读取快照…",
+    backupLoadFailed: "快照读取失败",
+    backupCreateBusy: "正在创建快照…",
+    backupCreated: "已创建新快照",
+    backupCreateFailed: "创建快照失败",
+    backupDownloadBusy: "正在准备下载…",
+    backupDownloaded: "已开始下载",
+    backupImportBusy: "正在读取 JSON…",
+    backupImported: "JSON 已读取",
+    backupImportFailed: "JSON 读取失败",
+    backupRestorePrepared: "已进入恢复确认",
+    backupRestoreBusy: "正在恢复快照…",
+    backupRestored: "已恢复，恢复前快照已另存",
+    backupRestoreFailed: "恢复失败",
+    backupCancelled: "已取消",
+    backupDesktopLegacyStatus: "当前环境暂不支持服务器快照"
   },
   es: {
     htmlLang: "es",
@@ -96,24 +157,66 @@ const i18n = {
     codebookTitle: "Códigos",
     codebookCopy: "",
     open: "Abrir",
-    downloadBackup: "Descargar",
-    importBackup: "Abrir",
-    backupIdle: "",
-    backupDownloading: "Preparando la copia de seguridad…",
-    backupDownloaded: "Descargada",
-    backupImporting: "Abriendo la copia de seguridad…",
-    backupSuccess: "Importada",
-    backupFailed: "Error",
-    backupCancelled: "Cancelada"
+    backupCardEyebrow: "",
+    backupCardTitle: "Copias y recuperación",
+    backupCardCopy: "El servidor guarda instantáneas automáticas de la base de datos.",
+    backupLegacyCopy: "En este entorno solo queda disponible la copia JSON.",
+    backupLatestAutoLabel: "Automática",
+    backupLatestManualLabel: "Manual",
+    backupCountLabel: "Cantidad",
+    backupCreate: "Crear copia ahora",
+    backupDownloadSelected: "Descargar instantánea",
+    backupDownloadJson: "Descargar JSON",
+    backupRestoreLabel: "Restaurar desde",
+    backupPrepareRestore: "Preparar restauración",
+    backupConfirmRestore: "Confirmar restauración",
+    backupCancelRestore: "Cancelar",
+    backupImportJson: "Abrir JSON antiguo",
+    backupListEyebrow: "",
+    backupListTitle: "Instantáneas recientes",
+    backupDefaultNote: "Las instantáneas automáticas quedan en segundo plano; JSON solo sirve como respaldo antiguo.",
+    backupEmptyNote: "Esperando la primera instantánea automática.",
+    backupLegacyNote: "Si trabajas en un entorno antiguo, sigue usando la copia JSON.",
+    backupRestoreWarning: "La restauración sobrescribe la base de datos actual y antes se guardará una copia de seguridad previa.",
+    backupNoData: "Sin copia",
+    backupNoList: "Todavía no hay instantáneas",
+    backupSourceAuto: "Automática",
+    backupSourceManual: "Manual",
+    backupSourceBeforeRestore: "Antes de restaurar",
+    backupSourceBeforeJsonImport: "Antes de importar",
+    backupSourceFallback: "Registro",
+    backupLoading: "Cargando instantáneas…",
+    backupLoadFailed: "No se pudieron cargar las instantáneas",
+    backupCreateBusy: "Creando instantánea…",
+    backupCreated: "Nueva instantánea guardada",
+    backupCreateFailed: "No se pudo crear la instantánea",
+    backupDownloadBusy: "Preparando descarga…",
+    backupDownloaded: "La descarga ha comenzado",
+    backupImportBusy: "Abriendo JSON…",
+    backupImported: "JSON importado",
+    backupImportFailed: "No se pudo importar el JSON",
+    backupRestorePrepared: "La restauración está lista para confirmar",
+    backupRestoreBusy: "Restaurando instantánea…",
+    backupRestored: "Restauración completada; se guardó una copia previa",
+    backupRestoreFailed: "No se pudo restaurar la instantánea",
+    backupCancelled: "Cancelada",
+    backupDesktopLegacyStatus: "Este entorno todavía no admite instantáneas del servidor"
   }
 };
 
-document.getElementById("home-language-toggle").addEventListener("click", toggleLanguage);
-document.getElementById("download-backup-button").addEventListener("click", downloadBackup);
-document.getElementById("import-backup-button").addEventListener("click", openBackup);
-backupInputEl?.addEventListener("change", importBackup);
+document.getElementById("home-language-toggle")?.addEventListener("click", toggleLanguage);
+elements.createBackupButton?.addEventListener("click", createBackupSnapshot);
+elements.downloadSelectedBackupButton?.addEventListener("click", downloadSelectedSnapshot);
+elements.downloadJsonBackupButton?.addEventListener("click", downloadJsonBackup);
+elements.restoreSelect?.addEventListener("change", handleSnapshotSelection);
+elements.restoreButton?.addEventListener("click", handleRestoreAction);
+elements.cancelRestoreButton?.addEventListener("click", cancelRestore);
+elements.importJsonBackupButton?.addEventListener("click", openJsonBackup);
+elements.backupFileInput?.addEventListener("change", importJsonBackup);
+elements.backupList?.addEventListener("click", handleSnapshotListClick);
 
 render();
+void loadBackupSnapshots();
 
 function toggleLanguage() {
   state.currentLang = state.currentLang === "zh" ? "es" : "zh";
@@ -122,9 +225,10 @@ function toggleLanguage() {
 }
 
 function render() {
-  const copy = i18n[state.currentLang];
+  const copy = getCopy();
   document.documentElement.lang = copy.htmlLang;
   document.title = copy.title;
+
   setText("home-eyebrow", copy.eyebrow);
   setText("home-title", copy.homeTitle);
   setText("home-copy", copy.homeCopy);
@@ -157,10 +261,351 @@ function render() {
   setText("catalog-card-link", copy.open);
   setText("methodology-list-link", copy.open);
   setText("codebook-card-link", copy.open);
-  setText("download-backup-button", copy.downloadBackup);
-  setText("import-backup-button", copy.importBackup);
   setText("home-language-toggle", "中 / Es");
-  setStatus("backup-status", copy.backupIdle);
+
+  renderBackupPanel();
+}
+
+function renderBackupPanel() {
+  const copy = getCopy();
+  const { backup } = state;
+  const supportsSnapshots = backup.supported !== false;
+  const selectedSnapshot = getSelectedSnapshot();
+  const isBusy = Boolean(backup.busy) || backup.loading;
+
+  setText("backup-card-eyebrow", copy.backupCardEyebrow);
+  setText("backup-card-title", copy.backupCardTitle);
+  setText("backup-card-copy", supportsSnapshots ? copy.backupCardCopy : copy.backupLegacyCopy);
+  setText("backup-latest-auto-label", copy.backupLatestAutoLabel);
+  setText("backup-latest-manual-label", copy.backupLatestManualLabel);
+  setText("backup-count-label", copy.backupCountLabel);
+  setText("create-backup-button", copy.backupCreate);
+  setText("download-selected-backup-button", copy.backupDownloadSelected);
+  setText("download-json-backup-button", copy.backupDownloadJson);
+  setText("backup-restore-label", copy.backupRestoreLabel);
+  setText("restore-backup-button", backup.restoreArmed ? copy.backupConfirmRestore : copy.backupPrepareRestore);
+  setText("cancel-restore-button", copy.backupCancelRestore);
+  setText("import-json-backup-button", copy.backupImportJson);
+  setText("backup-list-eyebrow", copy.backupListEyebrow);
+  setText("backup-list-title", copy.backupListTitle);
+
+  setText("backup-latest-auto-value", formatSnapshotLabel(backup.latestAuto));
+  setText("backup-latest-manual-value", formatSnapshotLabel(backup.latestManual));
+  setText("backup-count-value", supportsSnapshots ? String(backup.snapshots.length) : "—");
+
+  if (elements.restoreSelect) {
+    syncRestoreSelect();
+  }
+
+  setHidden(elements.backupMetrics, !supportsSnapshots);
+  setHidden(elements.createBackupButton, !supportsSnapshots);
+  setHidden(elements.downloadSelectedBackupButton, !supportsSnapshots);
+  setHidden(elements.backupRestoreField, !supportsSnapshots);
+  setHidden(elements.backupListBlock, !supportsSnapshots);
+  setHidden(elements.cancelRestoreButton, !backup.restoreArmed || !supportsSnapshots);
+
+  toggleDisabled(elements.createBackupButton, !supportsSnapshots || isBusy);
+  toggleDisabled(elements.downloadSelectedBackupButton, !supportsSnapshots || !selectedSnapshot || isBusy);
+  toggleDisabled(elements.downloadJsonBackupButton, isBusy);
+  toggleDisabled(elements.restoreSelect, !supportsSnapshots || backup.snapshots.length === 0 || isBusy);
+  toggleDisabled(elements.restoreButton, !supportsSnapshots || !selectedSnapshot || isBusy);
+  toggleDisabled(elements.cancelRestoreButton, isBusy);
+  toggleDisabled(elements.importJsonBackupButton, isBusy);
+
+  elements.restoreButton?.classList.toggle("warning-button", backup.restoreArmed);
+  elements.restoreButton?.classList.toggle("secondary-button", !backup.restoreArmed);
+
+  if (!elements.backupStatus?.textContent && backup.loading) {
+    setStatus(copy.backupLoading);
+  }
+
+  const noteText = backup.restoreArmed
+    ? copy.backupRestoreWarning
+    : supportsSnapshots
+      ? backup.snapshots.length
+        ? copy.backupDefaultNote
+        : copy.backupEmptyNote
+      : copy.backupLegacyNote;
+  setText("backup-restore-note", noteText);
+
+  renderBackupList();
+}
+
+function renderBackupList() {
+  if (!elements.backupList) return;
+
+  const copy = getCopy();
+  const { backup } = state;
+
+  if (backup.supported === false) {
+    elements.backupList.innerHTML = "";
+    return;
+  }
+
+  if (!backup.snapshots.length) {
+    elements.backupList.innerHTML = `<p class="home-backup-empty">${escapeHtml(copy.backupNoList)}</p>`;
+    return;
+  }
+
+  const selectedId = backup.selectedSnapshotId;
+  elements.backupList.innerHTML = backup.snapshots
+    .map((snapshot) => {
+      const activeClass = snapshot.id === selectedId ? " is-selected" : "";
+      return `
+        <button
+          type="button"
+          class="home-backup-item${activeClass}"
+          data-snapshot-id="${escapeHtml(snapshot.id)}"
+        >
+          <span class="home-backup-item-top">
+            <span class="home-backup-source">${escapeHtml(formatSnapshotSource(snapshot.source))}</span>
+            <span class="home-backup-size">${escapeHtml(formatBytes(snapshot.size_bytes))}</span>
+          </span>
+          <strong>${escapeHtml(formatSnapshotDate(snapshot.created_at))}</strong>
+          <small>${escapeHtml(snapshot.filename)}</small>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+async function loadBackupSnapshots() {
+  const copy = getCopy();
+  state.backup.loading = true;
+  renderBackupPanel();
+
+  try {
+    const payload = await requestJson("/api/backup-snapshots");
+    state.backup.supported = true;
+    applyBackupSummary(payload);
+    setStatus("");
+  } catch (error) {
+    console.error(error);
+    if (error?.status === 404 || error?.status === 405) {
+      state.backup.supported = false;
+      state.backup.snapshots = [];
+      state.backup.latestAuto = null;
+      state.backup.latestManual = null;
+      state.backup.selectedSnapshotId = "";
+      state.backup.restoreArmed = false;
+      setStatus(copy.backupDesktopLegacyStatus);
+    } else {
+      state.backup.supported = state.backup.supported === null ? true : state.backup.supported;
+      setStatus(copy.backupLoadFailed);
+    }
+  } finally {
+    state.backup.loading = false;
+    renderBackupPanel();
+  }
+}
+
+async function createBackupSnapshot() {
+  const copy = getCopy();
+  if (state.backup.supported === false || state.backup.busy) return;
+
+  state.backup.busy = "create";
+  state.backup.restoreArmed = false;
+  setStatus(copy.backupCreateBusy);
+  renderBackupPanel();
+
+  try {
+    const payload = await requestJson("/api/backup-snapshots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: "manual" })
+    });
+    state.backup.supported = true;
+    applyBackupSummary(payload);
+    setStatus(copy.backupCreated);
+  } catch (error) {
+    console.error(error);
+    setStatus(copy.backupCreateFailed);
+  } finally {
+    state.backup.busy = "";
+    renderBackupPanel();
+  }
+}
+
+function downloadSelectedSnapshot() {
+  const copy = getCopy();
+  const snapshot = getSelectedSnapshot();
+  if (!snapshot || state.backup.supported === false || state.backup.busy) return;
+
+  setStatus(copy.backupDownloadBusy);
+  triggerBrowserDownload(`/api/backup-file?snapshot_id=${encodeURIComponent(snapshot.id)}`);
+  setStatus(copy.backupDownloaded);
+}
+
+async function downloadJsonBackup() {
+  const copy = getCopy();
+  if (state.backup.busy === "import-json") return;
+
+  if (desktopBridge?.downloadBackup) {
+    setStatus(copy.backupDownloadBusy);
+    const result = await desktopBridge.downloadBackup({ suggestedName: "copia-de-seguridad-lera.json" });
+    handleDesktopLegacyStatus(result?.status);
+    return;
+  }
+
+  setStatus(copy.backupDownloadBusy);
+  triggerBrowserDownload("/api/backup");
+  setStatus(copy.backupDownloaded);
+}
+
+async function openJsonBackup() {
+  const copy = getCopy();
+  if (state.backup.busy) return;
+
+  if (desktopBridge?.importBackup && state.backup.supported === false) {
+    setStatus(copy.backupImportBusy);
+    const result = await desktopBridge.importBackup();
+    handleDesktopLegacyStatus(result?.status);
+    return;
+  }
+
+  elements.backupFileInput?.click();
+}
+
+async function importJsonBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const copy = getCopy();
+  state.backup.busy = "import-json";
+  state.backup.restoreArmed = false;
+  setStatus(copy.backupImportBusy);
+  renderBackupPanel();
+
+  try {
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    await requestJson("/api/backup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    setStatus(copy.backupImported);
+    if (state.backup.supported !== false) {
+      await loadBackupSnapshots();
+    }
+  } catch (error) {
+    console.error(error);
+    setStatus(copy.backupImportFailed);
+  } finally {
+    state.backup.busy = "";
+    if (event.target) event.target.value = "";
+    renderBackupPanel();
+  }
+}
+
+function handleSnapshotSelection(event) {
+  state.backup.selectedSnapshotId = event.target.value || "";
+  state.backup.restoreArmed = false;
+  renderBackupPanel();
+}
+
+function handleSnapshotListClick(event) {
+  const button = event.target.closest("[data-snapshot-id]");
+  if (!button) return;
+  state.backup.selectedSnapshotId = button.dataset.snapshotId || "";
+  state.backup.restoreArmed = false;
+  renderBackupPanel();
+}
+
+async function handleRestoreAction() {
+  const copy = getCopy();
+  const snapshot = getSelectedSnapshot();
+  if (!snapshot || state.backup.supported === false || state.backup.busy) return;
+
+  if (!state.backup.restoreArmed) {
+    state.backup.restoreArmed = true;
+    setStatus(copy.backupRestorePrepared);
+    renderBackupPanel();
+    return;
+  }
+
+  state.backup.busy = "restore";
+  setStatus(copy.backupRestoreBusy);
+  renderBackupPanel();
+
+  try {
+    const payload = await requestJson("/api/backup-restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshot_id: snapshot.id })
+    });
+    state.backup.supported = true;
+    state.backup.restoreArmed = false;
+    applyBackupSummary(payload);
+    setStatus(copy.backupRestored);
+  } catch (error) {
+    console.error(error);
+    setStatus(copy.backupRestoreFailed);
+  } finally {
+    state.backup.busy = "";
+    renderBackupPanel();
+  }
+}
+
+function cancelRestore() {
+  state.backup.restoreArmed = false;
+  setStatus(getCopy().backupCancelled);
+  renderBackupPanel();
+}
+
+function applyBackupSummary(payload) {
+  const snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  const selectedStillExists = snapshots.some((item) => item.id === state.backup.selectedSnapshotId);
+
+  state.backup.snapshots = snapshots;
+  state.backup.latestAuto = payload?.latest_auto || null;
+  state.backup.latestManual = payload?.latest_manual || null;
+  state.backup.retention = Number(payload?.retention || 0);
+  state.backup.autoIntervalSeconds = Number(payload?.auto_interval_seconds || 0);
+
+  if (selectedStillExists) {
+    return;
+  }
+
+  state.backup.selectedSnapshotId = snapshots[0]?.id || "";
+}
+
+function syncRestoreSelect() {
+  if (!elements.restoreSelect) return;
+
+  const copy = getCopy();
+  const { restoreSelect } = elements;
+  const previousValue = state.backup.selectedSnapshotId;
+  restoreSelect.innerHTML = "";
+
+  if (!state.backup.snapshots.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = copy.backupNoList;
+    restoreSelect.append(option);
+    restoreSelect.value = "";
+    return;
+  }
+
+  for (const snapshot of state.backup.snapshots) {
+    const option = document.createElement("option");
+    option.value = snapshot.id;
+    option.textContent = `${formatSnapshotSource(snapshot.source)} · ${formatSnapshotDate(snapshot.created_at)}`;
+    restoreSelect.append(option);
+  }
+
+  restoreSelect.value = state.backup.snapshots.some((item) => item.id === previousValue)
+    ? previousValue
+    : state.backup.snapshots[0].id;
+  state.backup.selectedSnapshotId = restoreSelect.value;
+}
+
+function getSelectedSnapshot() {
+  return state.backup.snapshots.find((item) => item.id === state.backup.selectedSnapshotId) || null;
+}
+
+function getCopy() {
+  return i18n[state.currentLang];
 }
 
 function setText(id, text) {
@@ -168,64 +613,125 @@ function setText(id, text) {
   if (element) element.textContent = text;
 }
 
-function setStatus(id, text) {
-  const element = document.getElementById(id);
-  if (element) element.textContent = text;
-}
-
-async function downloadBackup() {
-  if (desktopBridge?.downloadBackup) {
-    setStatus("backup-status", i18n[state.currentLang].backupDownloading);
-    const result = await desktopBridge.downloadBackup({ suggestedName: "copia-de-seguridad-lera.json" });
-    handleDesktopBackupStatus(result?.status);
-    return;
+function setStatus(text) {
+  if (elements.backupStatus) {
+    elements.backupStatus.textContent = text || "";
   }
-  window.location.href = "/api/backup";
 }
 
-async function openBackup() {
-  if (desktopBridge?.importBackup) {
-    setStatus("backup-status", i18n[state.currentLang].backupImporting);
-    const result = await desktopBridge.importBackup();
-    handleDesktopBackupStatus(result?.status);
-    return;
+function setHidden(element, hidden) {
+  if (!element) return;
+  element.hidden = Boolean(hidden);
+}
+
+function toggleDisabled(element, disabled) {
+  if (!element) return;
+  element.disabled = Boolean(disabled);
+}
+
+function formatSnapshotLabel(snapshot) {
+  if (!snapshot) return getCopy().backupNoData;
+  return formatSnapshotDate(snapshot.created_at);
+}
+
+function formatSnapshotDate(value) {
+  if (!value) return getCopy().backupNoData;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return getCopy().backupNoData;
+  return new Intl.DateTimeFormat(state.currentLang === "zh" ? "zh-CN" : "es-ES", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function formatSnapshotSource(source) {
+  const copy = getCopy();
+  const normalized = String(source || "").trim().toLowerCase();
+
+  if (normalized === "auto") return copy.backupSourceAuto;
+  if (normalized === "manual") return copy.backupSourceManual;
+  if (normalized === "before-restore") return copy.backupSourceBeforeRestore;
+  if (normalized === "before-json-import") return copy.backupSourceBeforeJsonImport;
+  return copy.backupSourceFallback;
+}
+
+function formatBytes(value) {
+  const bytes = Number(value || 0);
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let index = 0;
+  let amount = bytes;
+  while (amount >= 1024 && index < units.length - 1) {
+    amount /= 1024;
+    index += 1;
   }
-  backupInputEl.click();
+
+  const locale = state.currentLang === "zh" ? "zh-CN" : "es-ES";
+  const digits = amount >= 100 || index === 0 ? 0 : 1;
+  return `${new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(amount)} ${units[index]}`;
 }
 
-async function importBackup(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, options);
+  const contentType = response.headers.get("content-type") || "";
+  let payload = null;
 
   try {
-    setStatus("backup-status", i18n[state.currentLang].backupImporting);
-    const text = await file.text();
-    const payload = JSON.parse(text);
-    const response = await fetch("/api/backup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error("Import failed");
-    setStatus("backup-status", i18n[state.currentLang].backupSuccess);
-  } catch (error) {
-    console.error(error);
-    setStatus("backup-status", i18n[state.currentLang].backupFailed);
-  } finally {
-    event.target.value = "";
+    payload = contentType.includes("application/json") ? await response.json() : await response.text();
+  } catch {
+    payload = null;
   }
+
+  if (!response.ok) {
+    const message =
+      (payload && typeof payload === "object" && (payload.error || payload.message)) ||
+      `Request failed (${response.status})`;
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+
+  if (payload && typeof payload === "object") {
+    return payload;
+  }
+
+  return {};
 }
 
-function handleDesktopBackupStatus(status) {
-  const copy = i18n[state.currentLang];
-  if (!status) return;
+function triggerBrowserDownload(url) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
 
+function handleDesktopLegacyStatus(status) {
+  const copy = getCopy();
   const mapping = {
     downloaded: copy.backupDownloaded,
-    imported: copy.backupSuccess,
+    imported: copy.backupImported,
     cancelled: copy.backupCancelled,
-    failed: copy.backupFailed
+    failed: copy.backupImportFailed
   };
+  setStatus(mapping[status] || copy.backupCancelled);
+}
 
-  setStatus("backup-status", mapping[status] || copy.backupIdle);
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
