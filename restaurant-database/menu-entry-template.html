@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 菜单录入模板</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="./database.css" />
+    <style>
+      .menu-shell {
+        display: grid;
+        gap: 16px;
+      }
+
+      .menu-meta-grid,
+      .menu-main-grid,
+      .intro-grid,
+      .plan-grid,
+      .bottom-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .menu-meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .menu-main-grid {
+        grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+      }
+
+      .intro-grid {
+        grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.72fr);
+        align-items: start;
+      }
+
+      .intro-main {
+        display: grid;
+        gap: 14px;
+      }
+
+      .intro-description label {
+        display: grid;
+        gap: 8px;
+      }
+
+      .intro-description textarea {
+        min-height: 168px;
+        resize: vertical;
+      }
+
+      .plan-grid,
+      .bottom-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .menu-block {
+        display: grid;
+        gap: 14px;
+      }
+
+      .module-list,
+      .step-module-list,
+      .allergen-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .module-card,
+      .step-module-card,
+      .photo-dropzone {
+        border: 0;
+        border-top: 1px solid rgba(48, 43, 37, 0.14);
+        border-radius: 0;
+        padding: 12px 0 0;
+        background: transparent;
+      }
+
+      .module-head,
+      .step-module-head,
+      .inline-button-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .mini-button {
+        padding: 7px 11px;
+      }
+
+      .ingredient-grid {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .ingredient-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) 110px 100px auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .step-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .step-row {
+        display: grid;
+        grid-template-columns: 60px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: start;
+      }
+
+      .row-remove-button {
+        min-width: 44px;
+        padding-inline: 14px;
+      }
+
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        border-radius: 0;
+        border: 1px solid rgba(49, 75, 68, 0.18);
+        background: rgba(49, 75, 68, 0.08);
+        color: var(--accent);
+        font-family: var(--font-mono);
+      }
+
+      .photo-dropzone {
+        min-height: 0;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        justify-items: center;
+        text-align: center;
+        border-style: dashed;
+      }
+
+      .photo-dropzone img {
+        max-width: 100%;
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+      }
+
+      .photo-card {
+        display: grid;
+        gap: 10px;
+      }
+
+      .photo-card h3 {
+        margin-bottom: 0;
+      }
+
+      .photo-card .photo-dropzone {
+        padding: 12px 0 0;
+        background: transparent;
+      }
+
+      .allergen-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .allergen-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(251, 248, 242, 0.92);
+      }
+
+      .allergen-item input {
+        width: auto;
+        margin: 0;
+      }
+
+      .panel-stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 1040px) {
+        .intro-grid,
+        .menu-main-grid,
+        .menu-meta-grid,
+        .plan-grid,
+        .bottom-grid,
+        .allergen-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .ingredient-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell database-shell">
+      <main class="workspace">
+        <section class="print-header" aria-hidden="true">
+          <p id="print-brand" class="eyebrow">Lera 方法论</p>
+          <h1 id="print-document-title">菜品生产卡</h1>
+          <div class="print-header-meta">
+            <div>
+              <span id="print-dish-name-label" class="support-copy">菜名</span>
+              <strong id="print-dish-name-value">-</strong>
+            </div>
+            <div>
+              <span id="print-dish-code-label" class="support-copy">编码</span>
+              <strong id="print-dish-code-value">-</strong>
+            </div>
+          </div>
+        </section>
+        <header class="topbar">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">菜单录入模板</h1>
+            <p id="top-eyebrow" class="eyebrow">菜单录入</p>
+            <h2 id="top-title">生产卡模板</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="back-button" class="secondary-button" type="button">返回上一页</button>
+            <a id="home-link" href="../index.html" class="secondary-button nav-link">返回主页</a>
+            <button id="print-recipe-button" class="secondary-button" type="button">打印</button>
+            <button id="save-recipe-button" class="secondary-button" type="button">保存</button>
+            <button id="leave-recipe-button" class="secondary-button" type="button">离开</button>
+            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+          </div>
+        </header>
+
+        <div class="menu-shell">
+          <section class="intro-grid">
+            <article class="dashboard-card intro-main">
+                <div>
+                  <h3 id="menu-title-heading">大标题</h3>
+                  <div class="menu-meta-grid">
+                    <label>
+                      <span id="dish-title-label">菜名</span>
+                      <input id="dish-title" type="text" />
+                    </label>
+                    <label>
+                      <span id="dish-code-label">编码</span>
+                      <input id="dish-code" type="text" />
+                    </label>
+                  </div>
+                </div>
+                <div class="intro-description">
+                  <label>
+                    <span id="description-label">描述</span>
+                    <textarea id="description" rows="6"></textarea>
+                  </label>
+                </div>
+            </article>
+
+            <article class="dashboard-card photo-card">
+                <h3 id="photo-title">照片</h3>
+                <label class="photo-dropzone">
+                  <span id="photo-copy" class="support-copy"></span>
+                  <input id="photo-input" type="file" accept="image/*" hidden />
+                  <button id="photo-button" class="secondary-button" type="button">选择图片</button>
+                  <img id="photo-preview" hidden alt="preview" />
+                </label>
+            </article>
+          </section>
+
+          <section class="menu-main-grid">
+            <article class="main-panel">
+              <div class="panel-header">
+                <div>
+                  <p id="ingredients-eyebrow" class="eyebrow">左侧</p>
+                  <h3 id="ingredients-title">原料模块</h3>
+                </div>
+                <div class="panel-actions">
+                  <button id="add-module-button" class="secondary-button" type="button">加入模块</button>
+                </div>
+              </div>
+              <p id="ingredients-copy" class="support-copy"></p>
+              <div id="module-list" class="module-list"></div>
+            </article>
+
+            <article class="main-panel">
+              <div class="panel-header">
+                <div>
+                  <p id="steps-eyebrow" class="eyebrow">右侧</p>
+                  <h3 id="steps-title">生产步骤</h3>
+                </div>
+              </div>
+              <p id="steps-copy" class="support-copy"></p>
+              <div id="step-module-list" class="step-module-list"></div>
+            </article>
+          </section>
+
+          <section class="plan-grid">
+            <article class="dashboard-card">
+              <h3 id="plan-before-title">生产计划：服务之前</h3>
+              <label>
+                <span id="plan-before-label">内容</span>
+                <textarea id="plan-before" rows="8"></textarea>
+              </label>
+            </article>
+
+            <article class="dashboard-card">
+              <h3 id="plan-day-title">生产计划：服务当天</h3>
+              <label>
+                <span id="plan-day-label">内容</span>
+                <textarea id="plan-day" rows="8"></textarea>
+              </label>
+            </article>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="dashboard-card">
+              <h3 id="notes-title">注意事项</h3>
+              <label>
+                <span id="notes-label">备注</span>
+                <textarea id="notes" rows="6"></textarea>
+              </label>
+            </article>
+
+            <article class="dashboard-card">
+              <h3 id="allergens-title">14 个过敏原</h3>
+              <div id="allergen-grid" class="allergen-grid"></div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="../desktop-client.js"></script>
+    <script>
+      const LANGUAGE_STORAGE_KEY = "lera-ui-language";
+      const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
+
+      function getInitialLanguage() {
+        try {
+          const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
+          return stored === "zh" ? "zh" : "es";
+        } catch {
+          return "es";
+        }
+      }
+
+      function persistLanguage(lang) {
+        try {
+          localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+          localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
+        } catch {}
+      }
+
+      const i18n = {
+        zh: {
+          htmlLang: "zh-CN",
+          brandEyebrow: "Lera 方法论",
+          brandTitle: "菜品生产卡",
+          standaloneBrandTitle: "零散菜谱记录",
+          topEyebrow: "菜单录入",
+          topTitle: "菜品生产卡",
+          standaloneTopEyebrow: "独立食谱",
+          standaloneTopTitle: "零散菜谱记录",
+          printDocumentTitle: "菜品生产卡",
+          standalonePrintDocumentTitle: "零散菜谱记录",
+          printDishNameLabel: "菜名",
+          printDishCodeLabel: "编码",
+          menuTitleHeading: "菜名与编码",
+          standaloneMenuTitleHeading: "食谱标题与内部编号",
+          dishTitleLabel: "菜名",
+          dishCodeLabel: "编码",
+          standaloneDishTitleLabel: "食谱标题",
+          standaloneDishCodeLabel: "内部编号",
+          descriptionLabel: "简要描述",
+          ingredientsEyebrow: "制作组成",
+          ingredientsTitle: "制作组成与原料",
+          ingredientsCopy: "",
+          addModule: "加入制作组成",
+          removeModule: "删除组成",
+          addIngredient: "加入原料",
+          removeIngredient: "删除原料",
+          moduleName: "制作组成",
+          product: "产品",
+          quantity: "数量",
+          unit: "单位",
+          stepsEyebrow: "制作步骤",
+          stepsTitle: "制作步骤",
+          stepsCopy: "",
+          addStep: "增加步骤",
+          removeStep: "删除步骤",
+          stepPlaceholder: "",
+          planBeforeTitle: "前期准备",
+          planDayTitle: "服务当天",
+          planLabel: "内容",
+          notesTitle: "重点注意",
+          notesLabel: "备注",
+          photoTitle: "出品参考图",
+          photoCopy: "",
+          photoButton: "图片",
+          allergensTitle: "过敏原",
+          langToggle: "中 / Es",
+          backButton: "返回上一页",
+          homeLink: "返回主页",
+          printButton: "打印",
+          printFailed: "打印未能启动，请重试。",
+          saveReturn: "保存",
+          leaveButton: "离开",
+          standaloneSavedMessage: "零散菜谱已保存。",
+          savedMessage: "食谱已保存，正在返回录入页。",
+          savingMessage: "正在保存食谱…",
+          saveFailed: "保存失败",
+          leaveConfirm: "当前还有未保存内容，确定直接离开吗？"
+        },
+        es: {
+          htmlLang: "es",
+          brandEyebrow: "Metodología Lera",
+          brandTitle: "Ficha técnica",
+          standaloneBrandTitle: "Registro de receta suelta",
+          topEyebrow: "Registro de ficha técnica",
+          topTitle: "Ficha técnica",
+          standaloneTopEyebrow: "Receta independiente",
+          standaloneTopTitle: "Registro de receta suelta",
+          printDocumentTitle: "Ficha técnica",
+          standalonePrintDocumentTitle: "Registro de receta suelta",
+          printDishNameLabel: "Nombre del plato",
+          printDishCodeLabel: "Código",
+          menuTitleHeading: "Nombre y código",
+          standaloneMenuTitleHeading: "Título e identificador interno",
+          dishTitleLabel: "Nombre del plato",
+          dishCodeLabel: "Código",
+          standaloneDishTitleLabel: "Título de la receta",
+          standaloneDishCodeLabel: "Identificador interno",
+          descriptionLabel: "Descripción breve",
+          ingredientsEyebrow: "Componentes",
+          ingredientsTitle: "Componentes e ingredientes",
+          ingredientsCopy: "Cada componente incluye por defecto dos líneas de ingredientes: producto, cantidad y unidad.",
+          addModule: "Añadir componente",
+          removeModule: "Eliminar componente",
+          addIngredient: "Añadir ingrediente",
+          removeIngredient: "Eliminar ingrediente",
+          moduleName: "Componente",
+          product: "Producto",
+          quantity: "Cantidad",
+          unit: "Unidad",
+          stepsEyebrow: "Elaboración",
+          stepsTitle: "Elaboración",
+          stepsCopy: "La elaboración se genera automáticamente a partir de los componentes de la izquierda y se ordena con la numeración 1 / 2 / 3 / 4.",
+          addStep: "Añadir paso",
+          removeStep: "Eliminar paso",
+          stepPlaceholder: "",
+          planBeforeTitle: "Mise en place previa",
+          planDayTitle: "Servicio / Pase",
+          planLabel: "Contenido",
+          notesTitle: "Puntos importantes",
+          notesLabel: "Notas",
+          photoTitle: "Foto de referencia",
+          photoCopy: "Seleccionar una imagen como referencia de presentación final",
+          photoButton: "Imagen",
+          allergensTitle: "Alérgenos",
+          langToggle: "中 / Es",
+          backButton: "Volver",
+          homeLink: "Inicio",
+          printButton: "Imprimir",
+          printFailed: "No se pudo iniciar la impresión. Inténtalo de nuevo.",
+          saveReturn: "Guardar",
+          leaveButton: "Salir",
+          standaloneSavedMessage: "La receta suelta se ha guardado.",
+          savedMessage: "La ficha se ha guardado. Volviendo al registro.",
+          savingMessage: "Guardando ficha…",
+          saveFailed: "Error al guardar",
+          leaveConfirm: "Hay cambios sin guardar. ¿Quieres salir igualmente?"
+        }
+      };
+
+      const allergens = [
+        { key: "gluten", zh: "含麸质谷物", es: "Cereales con gluten" },
+        { key: "crustaceans", zh: "甲壳类", es: "Crustáceos" },
+        { key: "eggs", zh: "蛋", es: "Huevos" },
+        { key: "fish", zh: "鱼", es: "Pescado" },
+        { key: "peanuts", zh: "花生", es: "Cacahuetes" },
+        { key: "soy", zh: "大豆", es: "Soja" },
+        { key: "milk", zh: "乳", es: "Leche" },
+        { key: "nuts", zh: "坚果", es: "Frutos de cáscara" },
+        { key: "celery", zh: "芹菜", es: "Apio" },
+        { key: "mustard", zh: "芥末", es: "Mostaza" },
+        { key: "sesame", zh: "芝麻", es: "Sésamo" },
+        { key: "sulfites", zh: "亚硫酸盐", es: "Sulfitos" },
+        { key: "lupin", zh: "羽扇豆", es: "Altramuces" },
+        { key: "molluscs", zh: "软体动物", es: "Moluscos" }
+      ];
+
+      let currentLang = getInitialLanguage();
+      let moduleCounter = 1;
+      const RECIPE_SYNC_KEY = "lera-recipe-sync";
+      const RECIPE_DRAFT_PREFIX = "lera-recipe-draft:";
+      const STANDALONE_RECIPE_PREFIX = "REC";
+      const STANDALONE_FOUNDATION_CODE = "FPR";
+      const STANDALONE_PRODUCT_CODE = "PZ1";
+      const state = {
+        draftKey: "",
+        mode: "linked_dish",
+        modules: [],
+        allergens: {},
+        photoData: "",
+        recipeUpdatedAt: "",
+        lastSavedSnapshot: "",
+        isSaving: false,
+        autosaveTimer: null
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      state.mode = params.get("mode") === "standalone_recipe" ? "standalone_recipe" : "linked_dish";
+      state.draftKey = params.get("draftKey") || `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      document.getElementById("dish-title").value = params.get("title") || "";
+      document.getElementById("dish-code").value = params.get("code") || "";
+      document.getElementById("description").value = params.get("description") || "";
+
+      bindEvents();
+      init();
+
+      async function init() {
+        try {
+          await loadRecipe();
+        } catch (error) {
+          console.error(error);
+        }
+        hydrateStandaloneIdentity();
+        loadDraftSnapshot();
+        createAllergenGrid();
+        if (!state.modules.length) addModule();
+        renderLanguage();
+        renderModules();
+        hydrateSimpleFields();
+        rememberSavedSnapshot();
+      }
+
+      function bindEvents() {
+        ["language-toggle", "topbar-language-toggle"].forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) element.addEventListener("click", toggleLanguage);
+        });
+        document.getElementById("add-module-button").addEventListener("click", addModule);
+        document.getElementById("back-button").addEventListener("click", handleBackButton);
+        document.getElementById("photo-button").addEventListener("click", () => {
+          document.getElementById("photo-input").click();
+        });
+        document.getElementById("dish-title").addEventListener("input", syncPrintableDishMeta);
+        document.getElementById("dish-code").addEventListener("input", syncPrintableDishMeta);
+        document.getElementById("description").addEventListener("input", queueDraftSave);
+        document.getElementById("photo-input").addEventListener("change", handlePhotoChange);
+        document.getElementById("plan-before").addEventListener("input", queueDraftSave);
+        document.getElementById("plan-day").addEventListener("input", queueDraftSave);
+        document.getElementById("notes").addEventListener("input", queueDraftSave);
+        document.getElementById("print-recipe-button").addEventListener("click", async () => {
+          syncPrintableDishMeta();
+          if (window.leraDesktop?.printCurrentWindow) {
+            const result = await window.leraDesktop.printCurrentWindow();
+            if (result?.status === "printed") return;
+          }
+          try {
+            window.print();
+          } catch (error) {
+            console.error(error);
+            window.alert(i18n[currentLang].printFailed);
+          }
+        });
+        document.getElementById("save-recipe-button").addEventListener("click", saveAndReturn);
+        document.getElementById("leave-recipe-button").addEventListener("click", leaveRecipePage);
+        window.addEventListener("beforeunload", handleBeforeUnload);
+      }
+
+      function hydrateStandaloneIdentity() {
+        if (state.mode !== "standalone_recipe") return;
+        const titleInput = document.getElementById("dish-title");
+        const codeInput = document.getElementById("dish-code");
+        if (!titleInput.value.trim()) {
+          titleInput.value = currentLang === "zh" ? "未命名零散菜谱" : "Receta suelta sin nombre";
+        }
+        if (!codeInput.value.trim()) {
+          codeInput.value = buildStandaloneRecipeCode();
+        }
+      }
+
+      function buildStandaloneRecipeCode() {
+        const now = new Date();
+        const yyyy = String(now.getFullYear());
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const tail = String(Date.now()).slice(-3);
+        return `${STANDALONE_RECIPE_PREFIX}-${yyyy}${mm}${dd}-${tail}`;
+      }
+
+      function buildStandaloneDishRecordCode() {
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1);
+        const seqSeed = String(state.draftKey || "").replace(/[^a-zA-Z0-9]/g, "").slice(-3).padStart(3, "0");
+        return `${year}-FPR-PZ1-R-${month}-${seqSeed}`;
+      }
+
+      async function loadRecipe() {
+        if (!state.draftKey) return;
+        const response = await fetch(`/api/recipe?draft_key=${encodeURIComponent(state.draftKey)}`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!payload || !Object.keys(payload).length) return;
+
+        const recipe = payload.payload_json || {};
+        state.recipeUpdatedAt = payload.updated_at || "";
+        state.modules = Array.isArray(recipe.modules) ? recipe.modules : [];
+        state.allergens = recipe.allergens || {};
+        state.photoData = recipe.photoData || "";
+        moduleCounter = state.modules.length + 1;
+
+        document.getElementById("description").value = recipe.description || document.getElementById("description").value;
+        document.getElementById("plan-before").value = recipe.planBefore || "";
+        document.getElementById("plan-day").value = recipe.planDay || "";
+        document.getElementById("notes").value = recipe.notes || "";
+      }
+
+      function draftStorageKey() {
+        return `${RECIPE_DRAFT_PREFIX}${state.draftKey}`;
+      }
+
+      function currentDraftPayload() {
+        return {
+          modules: state.modules,
+          description: document.getElementById("description").value,
+          planBefore: document.getElementById("plan-before").value,
+          planDay: document.getElementById("plan-day").value,
+          notes: document.getElementById("notes").value,
+          allergens: state.allergens,
+          photoData: state.photoData
+        };
+      }
+
+      function loadDraftSnapshot() {
+        if (!state.draftKey) return;
+        try {
+          const raw = localStorage.getItem(draftStorageKey());
+          if (!raw) return;
+          const draft = JSON.parse(raw);
+          const draftSavedAt = Date.parse(draft.savedAt || "");
+          const recipeSavedAt = Date.parse(state.recipeUpdatedAt || "");
+          if (recipeSavedAt && (!draftSavedAt || draftSavedAt <= recipeSavedAt)) return;
+          state.modules = Array.isArray(draft.modules) ? draft.modules : state.modules;
+          state.allergens = draft.allergens || state.allergens;
+          state.photoData = draft.photoData || state.photoData;
+          moduleCounter = Math.max(moduleCounter, state.modules.length + 1);
+          document.getElementById("description").value = draft.description || document.getElementById("description").value;
+          document.getElementById("plan-before").value = draft.planBefore || document.getElementById("plan-before").value;
+          document.getElementById("plan-day").value = draft.planDay || document.getElementById("plan-day").value;
+          document.getElementById("notes").value = draft.notes || document.getElementById("notes").value;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function persistDraftSnapshot() {
+        if (!state.draftKey) return;
+        try {
+          localStorage.setItem(draftStorageKey(), JSON.stringify({
+            ...currentDraftPayload(),
+            savedAt: new Date().toISOString()
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function clearDraftSnapshot() {
+        if (!state.draftKey) return;
+        try {
+          localStorage.removeItem(draftStorageKey());
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function queueDraftSave() {
+        window.clearTimeout(state.autosaveTimer);
+        state.autosaveTimer = window.setTimeout(() => {
+          persistDraftSnapshot();
+        }, 300);
+      }
+
+      function hydrateSimpleFields() {
+        if (!state.photoData) return;
+        const preview = document.getElementById("photo-preview");
+        preview.src = state.photoData;
+        preview.hidden = false;
+      }
+
+      function toggleLanguage() {
+        currentLang = currentLang === "zh" ? "es" : "zh";
+        persistLanguage(currentLang);
+        renderLanguage();
+        renderModules();
+        createAllergenGrid();
+      }
+
+      function renderLanguage() {
+        const t = i18n[currentLang];
+        const standalone = state.mode === "standalone_recipe";
+        document.getElementById("dish-code-label").closest("label").classList.toggle("hidden", standalone);
+        document.documentElement.lang = t.htmlLang;
+        document.getElementById("brand-eyebrow").textContent = t.brandEyebrow;
+        document.getElementById("brand-title").textContent = standalone ? t.standaloneBrandTitle : t.brandTitle;
+        document.getElementById("top-eyebrow").textContent = standalone ? t.standaloneTopEyebrow : t.topEyebrow;
+        document.getElementById("top-title").textContent = standalone ? t.standaloneTopTitle : t.topTitle;
+        document.getElementById("print-brand").textContent = t.brandEyebrow;
+        document.getElementById("print-document-title").textContent = standalone ? t.standalonePrintDocumentTitle : t.printDocumentTitle;
+        document.getElementById("print-dish-name-label").textContent = t.printDishNameLabel;
+        document.getElementById("print-dish-code-label").parentElement.classList.toggle("hidden", standalone);
+        document.getElementById("print-dish-code-label").textContent = t.printDishCodeLabel;
+        document.getElementById("print-dish-name-value").textContent = document.getElementById("dish-title").value || "-";
+        document.getElementById("print-dish-code-value").textContent = document.getElementById("dish-code").value || "-";
+        document.getElementById("menu-title-heading").textContent = standalone ? t.standaloneMenuTitleHeading : t.menuTitleHeading;
+        document.getElementById("dish-title-label").textContent = standalone ? t.standaloneDishTitleLabel : t.dishTitleLabel;
+        document.getElementById("dish-code-label").textContent = standalone ? t.standaloneDishCodeLabel : t.dishCodeLabel;
+        document.getElementById("description-label").textContent = t.descriptionLabel;
+        document.getElementById("ingredients-eyebrow").textContent = t.ingredientsEyebrow;
+        document.getElementById("ingredients-title").textContent = t.ingredientsTitle;
+        document.getElementById("ingredients-copy").textContent = t.ingredientsCopy;
+        document.getElementById("add-module-button").textContent = t.addModule;
+        document.getElementById("steps-eyebrow").textContent = t.stepsEyebrow;
+        document.getElementById("steps-title").textContent = t.stepsTitle;
+        document.getElementById("steps-copy").textContent = t.stepsCopy;
+        document.getElementById("plan-before-title").textContent = t.planBeforeTitle;
+        document.getElementById("plan-day-title").textContent = t.planDayTitle;
+        document.getElementById("plan-before-label").textContent = t.planLabel;
+        document.getElementById("plan-day-label").textContent = t.planLabel;
+        document.getElementById("notes-title").textContent = t.notesTitle;
+        document.getElementById("notes-label").textContent = t.notesLabel;
+        document.getElementById("photo-title").textContent = t.photoTitle;
+        document.getElementById("photo-copy").textContent = t.photoCopy;
+        document.getElementById("photo-button").textContent = t.photoButton;
+        document.getElementById("allergens-title").textContent = t.allergensTitle;
+        const languageToggle = document.getElementById("language-toggle");
+        const topbarLanguageToggle = document.getElementById("topbar-language-toggle");
+        if (languageToggle) languageToggle.textContent = t.langToggle;
+        if (topbarLanguageToggle) topbarLanguageToggle.textContent = t.langToggle;
+        document.getElementById("back-button").textContent = t.backButton;
+        document.getElementById("home-link").textContent = t.homeLink;
+        document.getElementById("print-recipe-button").textContent = t.printButton;
+        document.getElementById("save-recipe-button").textContent = t.saveReturn;
+        document.getElementById("leave-recipe-button").textContent = t.leaveButton;
+        syncPrintableDishMeta();
+      }
+
+      function syncPrintableDishMeta() {
+        const dishTitle = document.getElementById("dish-title").value.trim();
+        const dishCode = document.getElementById("dish-code").value.trim();
+        document.getElementById("print-dish-name-value").textContent = dishTitle || "-";
+        document.getElementById("print-dish-code-value").textContent = dishCode || "-";
+        const titleLabel = state.mode === "standalone_recipe" ? i18n[currentLang].standaloneBrandTitle : i18n[currentLang].brandTitle;
+        document.title = dishTitle ? `${dishTitle} · ${titleLabel}` : `Lera · ${titleLabel}`;
+      }
+
+      function createAllergenGrid() {
+        const grid = document.getElementById("allergen-grid");
+        grid.innerHTML = "";
+        allergens.forEach((item) => {
+          const label = document.createElement("label");
+          label.className = "allergen-item";
+          label.innerHTML = `
+            <input type="checkbox" data-allergen="${item.key}" ${state.allergens[item.key] ? "checked" : ""} />
+            <span>${currentLang === "zh" ? item.zh : item.es}</span>
+          `;
+          grid.appendChild(label);
+        });
+
+        grid.querySelectorAll("[data-allergen]").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            state.allergens[checkbox.dataset.allergen] = checkbox.checked;
+            queueDraftSave();
+          });
+        });
+      }
+
+      function addModule() {
+        state.modules.push({
+          id: `module-${moduleCounter++}`,
+          name: "",
+          ingredients: [
+            { product: "", quantity: "", unit: "" },
+            { product: "", quantity: "", unit: "" }
+          ],
+          steps: [{ text: "" }]
+        });
+        renderModules();
+        queueDraftSave();
+      }
+
+      function addIngredient(moduleId) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.ingredients.push({ product: "", quantity: "", unit: "" });
+        renderModules();
+        queueDraftSave();
+      }
+
+      function addStep(moduleId) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.steps.push({ text: "" });
+        renderModules();
+        queueDraftSave();
+      }
+
+      function removeModule(moduleId) {
+        state.modules = state.modules.filter((item) => item.id !== moduleId);
+        renderModules();
+        queueDraftSave();
+      }
+
+      function removeIngredient(moduleId, index) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.ingredients.splice(index, 1);
+        renderIngredientModules();
+        queueDraftSave();
+      }
+
+      function removeStep(moduleId, index) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.steps.splice(index, 1);
+        renderStepModules();
+        queueDraftSave();
+      }
+
+      function updateModuleName(moduleId, value) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.name = value;
+        renderStepModules();
+        queueDraftSave();
+      }
+
+      function updateIngredient(moduleId, index, key, value) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.ingredients[index][key] = value;
+        queueDraftSave();
+      }
+
+      function updateStep(moduleId, index, value) {
+        const module = state.modules.find((item) => item.id === moduleId);
+        if (!module) return;
+        module.steps[index].text = value;
+        queueDraftSave();
+      }
+
+      function renderModules() {
+        renderIngredientModules();
+        renderStepModules();
+      }
+
+      function renderIngredientModules() {
+        const t = i18n[currentLang];
+        const container = document.getElementById("module-list");
+        container.innerHTML = "";
+
+        state.modules.forEach((module, moduleIndex) => {
+          const card = document.createElement("div");
+          card.className = "module-card";
+          const rows = module.ingredients.map((ingredient, index) => `
+            <div class="ingredient-row">
+              <input value="${escapeHtmlAttr(ingredient.product)}" placeholder="${t.product}" data-module-id="${module.id}" data-ingredient-index="${index}" data-key="product" />
+              <input value="${escapeHtmlAttr(ingredient.quantity)}" placeholder="${t.quantity}" data-module-id="${module.id}" data-ingredient-index="${index}" data-key="quantity" />
+              <input value="${escapeHtmlAttr(ingredient.unit)}" placeholder="${t.unit}" data-module-id="${module.id}" data-ingredient-index="${index}" data-key="unit" />
+              <button class="warning-button mini-button row-remove-button" type="button" data-remove-ingredient="${module.id}" data-remove-ingredient-index="${index}">×</button>
+            </div>
+          `).join("");
+
+          card.innerHTML = `
+            <div class="module-head">
+              <label>
+                <span>${t.moduleName} ${moduleIndex + 1}</span>
+                <input value="${escapeHtmlAttr(module.name)}" data-module-name="${module.id}" />
+              </label>
+              <div class="inline-button-row">
+                <button class="secondary-button mini-button" type="button" data-add-ingredient="${module.id}">${t.addIngredient}</button>
+                <button class="warning-button mini-button" type="button" data-remove-module="${module.id}">${t.removeModule}</button>
+              </div>
+            </div>
+            <div class="ingredient-grid">${rows}</div>
+          `;
+          container.appendChild(card);
+        });
+
+        container.querySelectorAll("[data-add-ingredient]").forEach((button) => {
+          button.addEventListener("click", () => addIngredient(button.dataset.addIngredient));
+        });
+
+        container.querySelectorAll("[data-remove-module]").forEach((button) => {
+          button.addEventListener("click", () => removeModule(button.dataset.removeModule));
+        });
+
+        container.querySelectorAll("[data-module-name]").forEach((input) => {
+          input.addEventListener("input", (event) => updateModuleName(input.dataset.moduleName, event.target.value));
+        });
+
+        container.querySelectorAll("[data-remove-ingredient]").forEach((button) => {
+          button.addEventListener("click", () => {
+            removeIngredient(button.dataset.removeIngredient, Number(button.dataset.removeIngredientIndex));
+          });
+        });
+
+        container.querySelectorAll("[data-key]").forEach((input) => {
+          input.addEventListener("input", (event) => {
+            updateIngredient(input.dataset.moduleId, Number(input.dataset.ingredientIndex), input.dataset.key, event.target.value);
+          });
+        });
+      }
+
+      function renderStepModules() {
+        const t = i18n[currentLang];
+        const container = document.getElementById("step-module-list");
+        container.innerHTML = "";
+
+        state.modules.forEach((module, moduleIndex) => {
+          const card = document.createElement("div");
+          card.className = "step-module-card";
+          const title = module.name.trim() || `${t.moduleName} ${moduleIndex + 1}`;
+          const rows = module.steps.map((step, index) => `
+            <div class="step-row">
+              <div class="step-number">${index + 1}</div>
+              <textarea rows="3" placeholder="${t.stepPlaceholder}" data-step-module-id="${module.id}" data-step-index="${index}">${escapeHtml(step.text)}</textarea>
+              <button class="warning-button mini-button row-remove-button" type="button" data-remove-step="${module.id}" data-remove-step-index="${index}">×</button>
+            </div>
+          `).join("");
+
+          card.innerHTML = `
+            <div class="step-module-head">
+              <strong>${title}</strong>
+              <button class="secondary-button mini-button" type="button" data-add-step="${module.id}">${t.addStep}</button>
+            </div>
+            <div class="step-list">${rows}</div>
+          `;
+          container.appendChild(card);
+        });
+
+        container.querySelectorAll("[data-add-step]").forEach((button) => {
+          button.addEventListener("click", () => addStep(button.dataset.addStep));
+        });
+
+        container.querySelectorAll("[data-remove-step]").forEach((button) => {
+          button.addEventListener("click", () => {
+            removeStep(button.dataset.removeStep, Number(button.dataset.removeStepIndex));
+          });
+        });
+
+        container.querySelectorAll("[data-step-module-id]").forEach((textarea) => {
+          textarea.addEventListener("input", (event) => {
+            updateStep(textarea.dataset.stepModuleId, Number(textarea.dataset.stepIndex), event.target.value);
+          });
+        });
+      }
+
+      function handlePhotoChange(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.photoData = reader.result;
+          const preview = document.getElementById("photo-preview");
+          preview.src = reader.result;
+          preview.hidden = false;
+          queueDraftSave();
+        };
+        reader.readAsDataURL(file);
+      }
+
+      async function saveAndReturn() {
+        const payloadJson = {
+          modules: state.modules,
+          description: document.getElementById("description").value,
+          planBefore: document.getElementById("plan-before").value,
+          planDay: document.getElementById("plan-day").value,
+          notes: document.getElementById("notes").value,
+          allergens: state.allergens,
+          photoData: state.photoData
+        };
+
+        try {
+          const saveButton = document.getElementById("save-recipe-button");
+          saveButton.disabled = true;
+          saveButton.textContent = i18n[currentLang].savingMessage;
+          const response = await fetch("/api/recipe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              draft_key: state.draftKey,
+              dish_code: document.getElementById("dish-code").value,
+              dish_name: document.getElementById("dish-title").value,
+              summary_text: buildSummary(),
+              payload_json: payloadJson
+            })
+          });
+
+          if (!response.ok) {
+            saveButton.disabled = false;
+            saveButton.textContent = i18n[currentLang].saveReturn;
+            window.alert(i18n[currentLang].saveFailed);
+            return;
+          }
+
+          state.isSaving = true;
+          state.recipeUpdatedAt = new Date().toISOString();
+          rememberSavedSnapshot();
+          clearDraftSnapshot();
+          broadcastRecipeSaved();
+          if (state.mode === "standalone_recipe") {
+            await saveStandaloneDishRecord();
+            state.isSaving = false;
+            saveButton.disabled = false;
+            saveButton.textContent = i18n[currentLang].saveReturn;
+            window.alert(i18n[currentLang].standaloneSavedMessage);
+            return;
+          }
+          await closeOrReturnToEntry();
+        } catch (error) {
+          console.error(error);
+          const saveButton = document.getElementById("save-recipe-button");
+          saveButton.disabled = false;
+          saveButton.textContent = i18n[currentLang].saveReturn;
+          window.alert(i18n[currentLang].saveFailed);
+        }
+      }
+
+      async function saveStandaloneDishRecord() {
+        const title = document.getElementById("dish-title").value.trim();
+        const recordCode = buildStandaloneDishRecordCode();
+        document.getElementById("dish-code").value = recordCode;
+        syncPrintableDishMeta();
+        const now = new Date();
+        const response = await fetch("/api/dishes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dish_code: recordCode,
+            draft_key: state.draftKey,
+            year_code: now.getFullYear(),
+            foundation_code: STANDALONE_FOUNDATION_CODE,
+            product_code: STANDALONE_PRODUCT_CODE,
+            season_code: "R",
+            month_no: now.getMonth() + 1,
+            seq_no: Number(String(state.draftKey || "").replace(/[^a-zA-Z0-9]/g, "").slice(-3)) || 1,
+            dish_name: title || (currentLang === "zh" ? "未命名零散菜谱" : "Receta suelta sin nombre"),
+            recipe_text: buildSummary(),
+            methodology_main_code: "",
+            methodology_version_code: "",
+            methodology_records: [],
+            notes: [document.getElementById("description").value.trim(), document.getElementById("notes").value.trim()].filter(Boolean).join("\n\n")
+          })
+        });
+        if (!response.ok) {
+          throw new Error("Failed to save standalone dish record");
+        }
+      }
+
+      function leaveRecipePage() {
+        if (!state.isSaving && hasUnsavedChanges()) {
+          const confirmed = window.confirm(i18n[currentLang].leaveConfirm);
+          if (!confirmed) return;
+        }
+        closeOrReturnToEntry();
+      }
+
+      function handleBackButton() {
+        if (!state.isSaving && hasUnsavedChanges()) {
+          const confirmed = window.confirm(i18n[currentLang].leaveConfirm);
+          if (!confirmed) return;
+        }
+        closeOrReturnToEntry();
+      }
+
+      function buildSummary() {
+        const stepCount = state.modules.reduce((total, module) => total + module.steps.length, 0);
+        return currentLang === "zh"
+          ? `${state.modules.length} 个制作组成 / ${stepCount} 个步骤`
+          : `${state.modules.length} subproductos / ${stepCount} pasos`;
+      }
+
+      function currentPayloadSnapshot() {
+        return JSON.stringify(currentDraftPayload());
+      }
+
+      function rememberSavedSnapshot() {
+        state.lastSavedSnapshot = currentPayloadSnapshot();
+      }
+
+      function hasUnsavedChanges() {
+        return currentPayloadSnapshot() !== state.lastSavedSnapshot;
+      }
+
+      function handleBeforeUnload(event) {
+        if (state.isSaving || !hasUnsavedChanges()) return;
+        event.preventDefault();
+        event.returnValue = "";
+      }
+
+      function buildCatalogUrl() {
+        const catalogParams = new URLSearchParams();
+        const catalogView = params.get("catalogView") || "";
+        if (catalogView) catalogParams.set("view", catalogView);
+        const query = catalogParams.toString();
+        return query ? `./catalog.html?${query}` : "./catalog.html";
+      }
+
+      function buildEntryUrl() {
+        if (state.mode === "standalone_recipe") {
+          const params = new URLSearchParams({
+            mode: "standalone_recipe",
+            draftKey: state.draftKey,
+            title: document.getElementById("dish-title").value || "",
+            code: document.getElementById("dish-code").value || "",
+            description: document.getElementById("description").value || ""
+          });
+          return `./menu-entry-template.html?${params.toString()}`;
+        }
+        if (params.get("returnTo") === "catalog") {
+          return buildCatalogUrl();
+        }
+        const returnParams = new URLSearchParams({
+          draftKey: state.draftKey,
+          dishName: document.getElementById("dish-title").value || "",
+          methodologyMainCode: params.get("methodologyMainCode") || "",
+          methodologyVersionCode: params.get("methodologyVersionCode") || "",
+          foundationCode: params.get("foundationCode") || "",
+          productCode: params.get("productCode") || "",
+          yearCode: params.get("yearCode") || "",
+          seasonCode: params.get("seasonCode") || "",
+          monthNo: params.get("monthNo") || "",
+          seqNo: params.get("seqNo") || "",
+          notes: params.get("notes") || ""
+        });
+        const entryMode = params.get("entryMode") || "";
+        if (entryMode) returnParams.set("entryMode", entryMode);
+        if (params.get("editMode") === "1") returnParams.set("editMode", "1");
+        if (params.get("originalDishCode")) returnParams.set("originalDishCode", params.get("originalDishCode"));
+        return `./index.html?${returnParams.toString()}`;
+      }
+
+      function broadcastRecipeSaved() {
+        if (state.mode === "standalone_recipe") return;
+        const payload = {
+          type: "lera-recipe-saved",
+          draftKey: state.draftKey,
+          savedAt: new Date().toISOString()
+        };
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(payload, "*");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+        try {
+          localStorage.setItem(RECIPE_SYNC_KEY, JSON.stringify(payload));
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function closeOrReturnToEntry() {
+        if (window.leraDesktop?.closeCurrentWindow && window.opener) {
+          const result = await window.leraDesktop.closeCurrentWindow();
+          if (result?.status === "closed") return;
+        }
+        if (window.opener && !window.opener.closed) {
+          window.close();
+          return;
+        }
+        window.location.href = buildEntryUrl();
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      function escapeHtmlAttr(text) {
+        return escapeHtml(text).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+      }
+    </script>
+  </body>
+</html>

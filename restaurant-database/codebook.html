@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 编码字典管理</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="./database.css" />
+    <style>
+      .codebook-grid,
+      .codebook-summary {
+        display: grid;
+        gap: 16px;
+      }
+
+      .codebook-grid {
+        grid-template-columns: 360px minmax(0, 1fr);
+      }
+
+      .codebook-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .codebook-table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(251, 248, 242, 0.9);
+      }
+
+      .codebook-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+      }
+
+      .codebook-table th,
+      .codebook-table td {
+        padding: 11px 13px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .codebook-table th {
+        background: rgba(243, 238, 230, 0.98);
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.76rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .codebook-toolbar {
+        display: grid;
+        grid-template-columns: 1.1fr 160px 160px;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        padding: 6px 10px;
+        border-radius: 0;
+        background: rgba(49, 75, 68, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(49, 75, 68, 0.18);
+        font-size: 0.78rem;
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .mini-button {
+        padding: 7px 11px;
+      }
+
+      @media (max-width: 1040px) {
+        .codebook-grid,
+        .codebook-summary,
+        .codebook-toolbar {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell database-shell">
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">编码字典管理</h1>
+            <p id="top-eyebrow" class="eyebrow">编码字典</p>
+            <h2 id="top-title">F / P 编码维护</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="back-button" class="secondary-button" type="button">返回上一页</button>
+            <a id="home-link" href="../index.html" class="secondary-button nav-link">返回主页</a>
+            <a href="./index.html" class="secondary-button nav-link" id="back-entry-link">返回录入页面</a>
+            <a href="./catalog.html" class="secondary-button nav-link" id="back-catalog-link">总列表</a>
+            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+          </div>
+        </header>
+
+        <section class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3 id="summary-title">编码快照</h3>
+            <div class="codebook-summary">
+              <div class="metric-card">
+                <span id="foundation-count-label" class="support-copy">F 编码数量</span>
+                <strong id="foundation-count">0</strong>
+              </div>
+              <div class="metric-card">
+                <span id="product-count-label" class="support-copy">P 编码数量</span>
+                <strong id="product-count">0</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="codebook-grid">
+          <aside class="dashboard-card">
+            <div class="panel-header">
+              <div>
+                <p id="form-eyebrow" class="eyebrow">新增编码</p>
+                <h3 id="form-title">新增字典项</h3>
+              </div>
+            </div>
+
+            <div id="code-form" class="dashboard-fields">
+              <label>
+                <span id="category-label">编码类别</span>
+                <select id="code-category">
+                  <option value="foundation">F</option>
+                  <option value="product">P</option>
+                </select>
+              </label>
+              <label>
+                <span id="parent-label">父级编码</span>
+                <input id="parent-code" type="text" placeholder="例如 FT / PA / PB" />
+              </label>
+              <label>
+                <span id="code-label">编码</span>
+                <input id="code-value" type="text" placeholder="例如 FT3 / PA1 / FPx" />
+              </label>
+              <label>
+                <span id="status-label">状态</span>
+                <select id="code-status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+              <label class="span-all">
+                <span id="label-current-label">说明</span>
+                <input id="label-current" type="text" placeholder="输入说明" />
+              </label>
+              <label class="span-all">
+                <span id="notes-label">备注</span>
+                <textarea id="code-notes" rows="5" placeholder="补充说明"></textarea>
+              </label>
+            </div>
+
+            <div class="button-stack top-gap">
+              <button id="save-code-button" class="secondary-button" type="button">保存编码</button>
+              <button id="reset-code-button" class="secondary-button" type="button">清空表单</button>
+            </div>
+            <div id="form-feedback" class="support-copy top-gap-sm"></div>
+          </aside>
+
+          <article class="main-panel">
+            <div class="panel-header">
+              <div>
+                <p id="table-eyebrow" class="eyebrow">编码总表</p>
+                <h3 id="table-title">字典列表</h3>
+              </div>
+            </div>
+
+            <div class="codebook-toolbar">
+              <label>
+                <span id="search-label">搜索</span>
+                <input id="search-input" type="text" placeholder="" />
+              </label>
+              <label>
+                <span id="filter-category-label">类别</span>
+                <select id="filter-category">
+                  <option value="">全部</option>
+                  <option value="foundation">F</option>
+                  <option value="product">P</option>
+                </select>
+              </label>
+              <label>
+                <span id="filter-status-label">状态</span>
+                <select id="filter-status">
+                  <option value="">全部</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="codebook-table-wrap">
+              <table class="codebook-table">
+                <thead>
+                  <tr>
+                    <th id="th-category">类别</th>
+                    <th id="th-parent">父级</th>
+                    <th id="th-code">编码</th>
+                    <th id="th-label">说明</th>
+                    <th id="th-status">状态</th>
+                    <th id="th-notes">备注</th>
+                    <th id="th-actions">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="codebook-body"></tbody>
+              </table>
+            </div>
+            <div id="codebook-empty" class="empty-state">暂无编码</div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="../desktop-client.js"></script>
+    <script src="./codebook.js"></script>
+  </body>
+</html>

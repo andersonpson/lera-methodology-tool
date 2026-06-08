@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera · Portal de herramientas</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./home.css" />
+  </head>
+  <body class="home-page">
+    <main class="home-shell">
+      <header class="home-masthead">
+        <div class="home-masthead-copy">
+          <p id="home-eyebrow" class="eyebrow">Metodología Lera</p>
+          <h1 id="home-title">Portal de trabajo</h1>
+          <p id="home-copy" class="brand-copy"></p>
+        </div>
+        <div class="home-masthead-tools">
+          <button id="download-backup-button" class="secondary-button" type="button">Descargar</button>
+          <button id="import-backup-button" class="secondary-button" type="button">Abrir</button>
+          <button id="home-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+        </div>
+        <input id="backup-file-input" type="file" accept="application/json,.json" hidden />
+        <p id="backup-status" class="support-copy home-status"></p>
+      </header>
+
+      <section class="home-arena">
+        <article class="home-focus">
+          <div class="home-focus-intro">
+            <p id="home-stage-eyebrow" class="eyebrow"></p>
+            <p id="home-stage-title" class="home-section-label">Principal</p>
+          </div>
+          <div class="home-focus-body">
+            <p id="methodology-card-eyebrow" class="eyebrow"></p>
+            <h2 id="methodology-card-title">Flujo del plato</h2>
+            <p id="methodology-card-copy" class="support-copy"></p>
+          </div>
+          <div class="home-command-actions">
+            <a id="methodology-card-link" class="home-command-link" href="./methodology.html">Abrir</a>
+          </div>
+        </article>
+
+        <section class="home-side">
+          <div class="home-side-stack">
+            <article class="home-side-module">
+              <p id="entry-card-eyebrow" class="eyebrow"></p>
+              <h3 id="entry-card-title">Registro de platos</h3>
+              <p id="entry-card-copy" class="support-copy"></p>
+              <div class="home-command-actions">
+                <a id="entry-card-link" class="home-command-link" href="./restaurant-database/index.html">Abrir</a>
+                <a id="loose-recipe-card-link" class="home-command-link home-command-link-secondary" href="./restaurant-database/menu-entry-template.html?mode=standalone_recipe">Nueva receta suelta</a>
+              </div>
+            </article>
+
+            <article class="home-side-module">
+              <p id="bridge-card-eyebrow" class="eyebrow"></p>
+              <h3 id="bridge-card-title">Investigación de materia prima</h3>
+              <p id="bridge-card-copy" class="support-copy"></p>
+              <div class="home-command-actions">
+                <a id="bridge-card-link" class="home-command-link" href="../My-creative-tools/Index.html">Abrir</a>
+              </div>
+            </article>
+          </div>
+
+          <aside class="home-directory">
+            <div class="home-directory-head">
+              <p id="directory-eyebrow" class="eyebrow"></p>
+              <p id="directory-title" class="home-section-label">Otros</p>
+            </div>
+
+            <div class="home-directory-list">
+              <article class="home-directory-item">
+                <div class="home-directory-copy">
+                  <p id="catalog-card-eyebrow" class="eyebrow"></p>
+                  <h3 id="catalog-card-title">Platos y recetas</h3>
+                  <p id="catalog-card-copy" class="support-copy"></p>
+                </div>
+                <a id="catalog-card-link" class="home-inline-link" href="./restaurant-database/catalog.html">Abrir</a>
+              </article>
+
+              <article class="home-directory-item">
+                <div class="home-directory-copy">
+                  <p id="methodology-list-eyebrow" class="eyebrow"></p>
+                  <h3 id="methodology-list-title">Registro metodológico</h3>
+                  <p id="methodology-list-copy" class="support-copy"></p>
+                </div>
+                <a id="methodology-list-link" class="home-inline-link" href="./restaurant-database/methodology-list.html">Abrir</a>
+              </article>
+
+              <article class="home-directory-item">
+                <div class="home-directory-copy">
+                  <p id="codebook-card-eyebrow" class="eyebrow"></p>
+                  <h3 id="codebook-card-title">Códigos</h3>
+                  <p id="codebook-card-copy" class="support-copy"></p>
+                </div>
+                <a id="codebook-card-link" class="home-inline-link" href="./restaurant-database/codebook.html">Abrir</a>
+              </article>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+
+    <script src="./desktop-client.js"></script>
+    <script src="./home.js"></script>
+  </body>
+</html>

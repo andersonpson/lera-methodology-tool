@@ -1,0 +1,8 @@
+_project_snapshots
+.git
+docs
+electron-release
+UNUSED_FILES_REPORT.md
+TRANSLATION_REVIEW_SUGGESTIONS.md
+BILINGUAL_ZH_ES_REFERENCE.txt
+.DS_Store

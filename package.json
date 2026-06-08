@@ -1,0 +1,16 @@
+{
+  "name": "lera-desktop",
+  "version": "0.1.0",
+  "description": "Lera desktop app for methodology and restaurant dish registration",
+  "main": "desktop/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron desktop/smoke-test.js",
+    "package:mac": "zsh desktop/package-mac.sh"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-packager": "^17.1.2"
+  }
+}

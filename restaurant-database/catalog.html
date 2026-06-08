@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 餐厅成品菜数据库总列表</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="./database.css" />
+  </head>
+  <body>
+    <div class="app-shell database-shell">
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">数据库总列表</h1>
+            <p id="top-eyebrow" class="eyebrow">数据库总列表</p>
+            <h2 id="top-title">成品菜目录</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="back-button" class="secondary-button" type="button">返回上一页</button>
+            <a id="home-link" href="../index.html" class="secondary-button nav-link">返回主页</a>
+            <a id="entry-link" href="./index.html?entryMode=manual" class="secondary-button nav-link">新增菜品</a>
+            <a id="methodology-link" href="./methodology-list.html" class="secondary-button nav-link">方法论使用列表</a>
+            <a id="codebook-link" href="./codebook.html" class="secondary-button nav-link">新增编码</a>
+            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+          </div>
+        </header>
+
+        <section class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3 id="snapshot-title">数据库快照</h3>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <span id="total-count-label" class="support-copy">当前菜品数</span>
+                <strong id="total-count">0</strong>
+              </div>
+              <div class="metric-card">
+                <span id="filtered-count-label" class="support-copy">当前检索结果</span>
+                <strong id="filtered-count">0</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="main-panel">
+          <div class="panel-header">
+            <div>
+              <p id="catalog-eyebrow" class="eyebrow">访问与检索</p>
+              <h3 id="catalog-section-title">菜品目录</h3>
+            </div>
+            <div class="table-actions">
+              <button id="view-dishes-button" class="secondary-button mini-button" type="button">主菜数据库</button>
+              <button id="view-subproducts-button" class="secondary-button mini-button" type="button">副产品数据库</button>
+            </div>
+          </div>
+
+          <div class="catalog-toolbar">
+            <label>
+              <span id="search-label">搜索名称 / 编码</span>
+              <input id="search-input" type="text" placeholder="" />
+            </label>
+            <label>
+              <span id="foundation-filter-label">F 检索</span>
+              <div id="filter-foundation-builder" class="foundation-builder"></div>
+            </label>
+            <label>
+              <span id="product-filter-label">P 检索</span>
+              <div id="filter-product-builder" class="foundation-builder"></div>
+            </label>
+            <label>
+              <span id="season-filter-label">季节</span>
+              <select id="filter-season">
+                <option value="">全部</option>
+                <option value="P">Primavera</option>
+                <option value="V">Verano</option>
+                <option value="O">Otoño</option>
+                <option value="I">Invierno</option>
+              </select>
+            </label>
+            <label>
+              <span id="month-filter-label">月份</span>
+              <select id="filter-month">
+                <option value="">全部</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="catalog-list-wrap">
+            <div id="catalog-body" class="catalog-list"></div>
+          </div>
+          <div id="catalog-empty" class="empty-state">暂无菜品</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="../desktop-client.js"></script>
+    <script src="./catalog.js"></script>
+  </body>
+</html>

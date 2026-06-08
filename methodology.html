@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 方法论工具</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-row">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">菜品流程原型</h1>
+          </div>
+          <button id="language-toggle" class="lang-toggle" type="button">中 / Es</button>
+        </div>
+          <p id="brand-copy" class="brand-copy"></p>
+        </div>
+
+        <section class="sidebar-card">
+          <h2 id="main-flow-title">主流程</h2>
+          <div id="stage-list" class="stage-list"></div>
+        </section>
+
+        <section class="sidebar-card compact">
+          <h2 id="version-title">方法论记录</h2>
+          <p id="version-indicator">2026-001</p>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="topbar-copy">
+            <p id="dashboard-eyebrow" class="eyebrow">项目总览</p>
+            <h2 id="dashboard-title">未命名菜品</h2>
+            <p id="save-status-text" class="support-copy save-status">未保存</p>
+          </div>
+          <div class="topbar-actions">
+            <a id="home-link" href="./index.html" class="secondary-button nav-link">主页</a>
+            <button id="save-button" type="button">保存到数据库</button>
+            <button id="open-button" class="secondary-button" type="button">读取</button>
+            <button id="save-pdf-button" class="secondary-button" type="button">保存 PDF</button>
+            <button id="export-results-button" class="secondary-button" type="button">下载所有结果</button>
+            <button id="restart-button" class="secondary-button" type="button">重新开始</button>
+          </div>
+        </header>
+
+        <section class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3 id="snapshot-title">项目快照</h3>
+            <div class="dashboard-fields">
+              <label>
+                项目类型
+                <select id="project-origin" name="projectOrigin"></select>
+              </label>
+              <label>
+                菜品名称
+                <input id="dish-name" name="dishName" type="text" placeholder="菜品暂定名" />
+              </label>
+              <label>
+                项目编码
+                <input id="project-code" name="projectCode" type="text" placeholder="2026-001" />
+              </label>
+              <label id="source-dish-code-wrapper" class="hidden">
+                原菜肴编码
+                <input id="source-dish-code" name="sourceDishCode" type="text" placeholder="原始成品菜编码" />
+              </label>
+              <label id="source-methodology-code-wrapper" class="hidden">
+                原方法论主编码
+                <input id="source-methodology-code" name="sourceMethodologyCode" type="text" placeholder="对应旧方法论主编码" />
+              </label>
+              <label>
+                当前阶段
+                <input id="current-stage-display" type="text" readonly />
+              </label>
+              <label>
+                当前状态
+                <select id="current-status" name="currentStatus"></select>
+              </label>
+              <label>
+                当前激活的创意基础
+                <input id="active-creative-basis" name="activeCreativeBasis" type="text" placeholder="FT3 / FP2 / FA3..." readonly />
+              </label>
+              <label>
+                下一步动作
+                <input id="next-action" name="nextAction" type="text" readonly />
+              </label>
+            </div>
+          </article>
+
+          <article class="dashboard-card">
+            <h3 id="latest-change-title">修改记录</h3>
+            <div id="latest-change" class="change-log-list empty-state"></div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="main-panel">
+            <div class="panel-header">
+              <div class="panel-head-copy">
+                <p id="stage-workspace-eyebrow" class="eyebrow">阶段工作台</p>
+                <h3 id="stage-title">A 阶段</h3>
+              </div>
+              <div class="panel-actions">
+                <button id="skip-stage-button" class="ghost-button" type="button" hidden>暂时跳过</button>
+                <button id="previous-stage-button" class="secondary-button" type="button" hidden>上一页</button>
+                <button id="review-button" class="secondary-button" type="button">回顾</button>
+                <button id="stage-rollback-button" class="warning-button" type="button">正式回退</button>
+                <button id="next-stage-button" type="button">下一阶段</button>
+              </div>
+            </div>
+            <p id="stage-guidance" class="support-copy"></p>
+            <div id="rollback-banner" class="rollback-banner" hidden></div>
+            <form id="stage-form" class="stage-form"></form>
+          </article>
+
+          <aside class="side-panel">
+            <section id="methodology-panel" class="dashboard-card" hidden>
+              <h3 id="methodology-panel-title">方法论参考</h3>
+              <div id="methodology-panel-content"></div>
+            </section>
+
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="rollback-dialog" class="rollback-dialog">
+      <form id="rollback-form" method="dialog" class="rollback-form">
+        <div class="dialog-head">
+          <div class="dialog-head-copy">
+            <p id="rollback-event-eyebrow" class="eyebrow">回退事件</p>
+            <h3 id="rollback-dialog-title">创建一条正式回退记录</h3>
+          </div>
+          <button id="rollback-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+        </div>
+        <p id="rollback-dialog-copy" class="support-copy"></p>
+
+        <label>
+          回退目标阶段
+          <select id="rollback-target" name="rollbackTarget"></select>
+        </label>
+
+        <label>
+          修改原因
+          <input id="rollback-reason" name="reasonForChange" type="text" placeholder="为什么要回退？" required />
+        </label>
+
+        <label>
+          修改说明
+          <textarea id="rollback-description" name="descriptionOfChange" rows="4" placeholder="需要修正什么？"></textarea>
+        </label>
+
+        <label>
+          受影响元素
+          <input id="rollback-elements" name="affectedElements" type="text" placeholder="主角元素、液体元素……" />
+        </label>
+
+        <label>
+          受影响技法
+          <input id="rollback-techniques" name="affectedTechniques" type="text" placeholder="烘烤、腌制、浸泡……" />
+        </label>
+
+        <div class="dialog-actions">
+          <button id="cancel-rollback" class="ghost-button" type="button">取消</button>
+          <button id="confirm-rollback" type="submit">创建回退</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="review-dialog" class="rollback-dialog review-dialog">
+      <div class="rollback-form review-shell">
+        <div class="dialog-head">
+          <div class="dialog-head-copy">
+            <p id="review-eyebrow" class="eyebrow">阶段回顾</p>
+            <h3 id="review-dialog-title">回顾 C / D / E 阶段</h3>
+          </div>
+          <button id="review-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+        </div>
+        <p id="review-dialog-copy" class="support-copy"></p>
+        <div id="review-content" class="review-content"></div>
+        <div class="dialog-actions">
+          <button id="close-review" class="ghost-button" type="button">关闭</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="attribute-dialog" class="attribute-dialog">
+      <div class="attribute-shell">
+        <div class="attribute-topbar">
+          <div class="attribute-topbar-copy">
+            <p id="attribute-eyebrow" class="eyebrow">属性原料分支</p>
+            <h3 id="attribute-dialog-title">属性分支</h3>
+          </div>
+          <div class="dialog-actions">
+            <button id="attribute-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+            <button id="close-attribute" class="ghost-button" type="button">关闭</button>
+          </div>
+        </div>
+
+        <p id="attribute-dialog-copy" class="support-copy"></p>
+
+        <form id="attribute-form" class="attribute-form">
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-stage-1-title">I. 目标属性定义</h4>
+            </div>
+            <label>
+              <span id="attribute-target-type-label">目标结果类型</span>
+              <div id="attribute-target-types"></div>
+            </label>
+          </section>
+
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-stage-2-title">II. 精准描述属性</h4>
+              <button id="attribute-add-row" class="secondary-button" type="button">添加属性</button>
+            </div>
+            <div id="attribute-description-grid" class="attribute-stack"></div>
+          </section>
+
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-stage-3-title">III. 实现机制识别</h4>
+            </div>
+            <div id="attribute-mechanism-grid" class="attribute-stack"></div>
+          </section>
+
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-stage-4-title">IV. 翻译为可能原料</h4>
+            </div>
+            <div id="attribute-ingredient-grid" class="attribute-stack"></div>
+          </section>
+
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-stage-5-title">V. 自由组合</h4>
+              <button id="attribute-add-combination" class="secondary-button" type="button">添加组合</button>
+            </div>
+            <div id="attribute-combinations-list" class="attribute-stack"></div>
+          </section>
+
+          <section class="attribute-card">
+            <div class="attribute-card-head">
+              <h4 id="attribute-output-title">输出结果</h4>
+            </div>
+            <label>
+              <span id="attribute-output-target-label">输出到的 C 阶段元素</span>
+              <select id="attribute-output-target" name="outputTarget"></select>
+            </label>
+            <label>
+              <span id="attribute-output-label">准备输出回 C 阶段的结果</span>
+              <select id="attribute-output" name="outputSummary"></select>
+            </label>
+            <div>
+              <span id="attribute-alternatives-label">备选选项</span>
+              <div id="attribute-alternatives"></div>
+            </div>
+          </section>
+        </form>
+        <div class="dialog-actions">
+          <button id="apply-attribute-output" type="button">输出结果</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="saved-records-dialog" class="rollback-dialog">
+      <div class="rollback-form saved-records-shell">
+        <div class="dialog-head">
+          <div>
+            <p id="saved-records-eyebrow" class="eyebrow">已保存记录</p>
+            <h3 id="saved-records-title">读取</h3>
+          </div>
+          <div class="dialog-actions">
+            <button id="close-saved-records" class="secondary-button" type="button">关闭</button>
+          </div>
+        </div>
+        <div id="saved-records-list" class="saved-records-list empty-state">正在读取本地记录…</div>
+      </div>
+    </dialog>
+
+    <script src="./desktop-client.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

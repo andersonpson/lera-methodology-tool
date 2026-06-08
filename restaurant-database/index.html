@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 餐厅成品菜录入</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="./database.css" />
+  </head>
+  <body>
+    <div class="app-shell database-shell">
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">餐厅成品菜录入</h1>
+            <p id="top-eyebrow" class="eyebrow">项目总览</p>
+            <h2 id="top-title">成品菜录入</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="back-button" class="secondary-button" type="button">返回上一页</button>
+            <a id="home-link" href="../index.html" class="secondary-button nav-link">返回主页</a>
+            <a id="catalog-link" href="./catalog.html" class="secondary-button nav-link">数据库总表</a>
+            <a id="codebook-link" href="./codebook.html" class="secondary-button nav-link">新增编码</a>
+            <a id="loose-recipe-link" href="./menu-entry-template.html?mode=standalone_recipe" class="secondary-button nav-link">零散菜谱记录</a>
+            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+          </div>
+        </header>
+
+        <section class="dashboard-card">
+          <div class="panel-header">
+            <div>
+              <p id="form-eyebrow" class="eyebrow">录入</p>
+              <h3 id="form-title">新增菜品</h3>
+            </div>
+          </div>
+
+          <div id="dish-form-grid" class="entry-form-shell">
+            <section class="field-group">
+              <div class="entry-section-head">
+                <p id="identity-eyebrow" class="eyebrow">基础识别</p>
+                <h4 id="dish-name-label">菜品名称</h4>
+              </div>
+              <div class="dashboard-fields entry-compact-grid">
+                <label class="span-all">
+                  <span id="dish-name-inline-label">菜品名称</span>
+                  <input id="dish-name" type="text" placeholder="例如 Perdiz con salsa amarga" />
+                </label>
+                <label>
+                  <span id="year-label">年份 A</span>
+                  <input id="year-code" type="number" min="2000" max="9999" value="2026" />
+                </label>
+                <label>
+                  <span id="season-label">季节 E</span>
+                  <select id="season-code">
+                    <option value="P">P · Primavera</option>
+                    <option value="V">V · Verano</option>
+                    <option value="O">O · Otoño</option>
+                    <option value="I">I · Invierno</option>
+                  </select>
+                </label>
+                <label>
+                  <span id="month-label">月份 M</span>
+                  <select id="month-no"></select>
+                </label>
+                <label>
+                  <span id="seq-label">顺序号 NNN</span>
+                  <input id="seq-no" type="number" min="1" max="999" value="1" />
+                </label>
+              </div>
+            </section>
+
+            <section class="field-group">
+              <div class="entry-section-head">
+                <p id="foundation-eyebrow" class="eyebrow">编码生成</p>
+                <h4 id="foundation-label">创意基础 F</h4>
+              </div>
+              <div id="foundation-builder" class="foundation-builder"></div>
+              <div id="foundation-note" class="support-copy top-gap-sm"></div>
+              <div id="foundation-helper" class="foundation-preview top-gap-sm">未选择</div>
+            </section>
+
+            <section class="field-group">
+              <div class="entry-section-head">
+                <p id="product-eyebrow" class="eyebrow">编码生成</p>
+                <h4 id="product-label">原料类别 P</h4>
+              </div>
+              <div id="product-builder" class="foundation-builder"></div>
+              <div id="product-note" class="support-copy top-gap-sm"></div>
+              <div id="product-helper" class="foundation-preview top-gap-sm">未选择</div>
+            </section>
+
+            <section class="field-group span-all">
+              <div class="entry-section-head">
+                <p id="methodology-eyebrow" class="eyebrow">方法论关联</p>
+                <h4 id="methodology-main-title">方法论记录</h4>
+              </div>
+              <div class="dashboard-fields entry-compact-grid">
+                <label>
+                  <span id="methodology-main-label">方法论主编码</span>
+                  <input id="methodology-main-code" type="text" placeholder="例如 2026-001" />
+                </label>
+                <label>
+                  <span id="methodology-version-label">正式方法论版本</span>
+                  <input id="methodology-version-code" type="text" placeholder="如有正式版本则显示" readonly />
+                </label>
+                <label class="span-all">
+                  <span id="methodology-records-label">方法论使用记录</span>
+                  <div class="code-preview-card">
+                    <div id="methodology-records-note" class="support-copy"></div>
+                    <div id="methodology-records-list" class="methodology-records-list top-gap-sm"></div>
+                    <div class="button-stack top-gap-sm">
+                      <button id="add-methodology-record-button" class="secondary-button" type="button">新增方法论记录</button>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <section class="field-group span-all">
+              <div class="entry-section-head">
+                <p id="content-eyebrow" class="eyebrow">内容录入</p>
+                <h4 id="content-title">食谱与备注</h4>
+              </div>
+              <div class="dashboard-fields entry-compact-grid">
+                <label class="span-all">
+                  <span id="recipe-entry-inline-label">食谱录入</span>
+                  <div class="code-preview-card">
+                    <div id="recipe-status" class="support-copy"></div>
+                    <div id="recipe-summary" class="code-preview-value"></div>
+                    <div class="button-stack top-gap-sm">
+                      <button id="open-recipe-button" class="secondary-button" type="button">录入食谱</button>
+                      <button id="delete-recipe-button" class="secondary-button" type="button">删除菜谱</button>
+                    </div>
+                  </div>
+                </label>
+                <label class="span-all">
+                  <span id="notes-label">备注</span>
+                  <textarea id="notes" placeholder="其他说明"></textarea>
+                </label>
+              </div>
+            </section>
+          </div>
+
+          <div class="button-stack top-gap">
+            <a id="back-detail-link" href="./catalog.html" class="secondary-button nav-link" hidden>返回</a>
+            <button id="save-dish-button" class="secondary-button" type="button">保存菜品</button>
+            <button id="reset-form-button" class="secondary-button" type="button">清空表单</button>
+          </div>
+          <div id="form-feedback" class="support-copy top-gap-sm"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="../desktop-client.js"></script>
+    <script src="./entry.js"></script>
+  </body>
+</html>

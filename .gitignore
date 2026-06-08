@@ -1,0 +1,7 @@
+node_modules/
+electron-release/
+.DS_Store
+.env
+restaurant-database/__pycache__/
+restaurant-database/*.pyc
+restaurant-database/restaurant.db

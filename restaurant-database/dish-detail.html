@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera 已注册菜品</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="./database.css" />
+  </head>
+  <body class="detail-page">
+    <div class="detail-shell">
+      <main class="workspace">
+        <section class="print-header" aria-hidden="true">
+          <p id="print-brand" class="eyebrow">Lera 方法论</p>
+          <h1 id="print-document-title">已注册菜品</h1>
+          <div class="print-header-meta">
+            <div>
+              <span id="print-dish-name-label" class="support-copy">菜品名称</span>
+              <strong id="print-dish-name-value">-</strong>
+            </div>
+            <div>
+              <span id="print-dish-code-label" class="support-copy">菜品编码</span>
+              <strong id="print-dish-code-value">-</strong>
+            </div>
+          </div>
+        </section>
+        <header class="topbar">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
+            <h1 id="brand-title">已注册菜品</h1>
+            <p id="top-eyebrow" class="eyebrow top-gap-sm">菜品详情</p>
+            <h2 id="top-title">注册内容</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="back-button" class="secondary-button" type="button">返回上一页</button>
+            <a id="home-link" href="../index.html" class="secondary-button nav-link">返回主页</a>
+            <a id="back-catalog-link" href="./catalog.html" class="secondary-button nav-link">总表</a>
+            <button id="print-dish-button" class="secondary-button" type="button">打印</button>
+            <a id="edit-dish-link" href="./index.html" class="secondary-button nav-link">编辑</a>
+            <button id="delete-dish-button" class="secondary-button" type="button">删除</button>
+            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
+          </div>
+        </header>
+
+        <section class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3 id="snapshot-title">基础信息</h3>
+            <div id="basic-info-grid" class="dashboard-fields"></div>
+          </article>
+
+          <article class="dashboard-card">
+            <h3 id="photo-title">出品参考图</h3>
+            <div id="detail-photo-frame" class="detail-photo-frame">
+              <img id="detail-photo-image" alt="dish reference" hidden />
+            </div>
+          </article>
+
+        </section>
+
+        <section class="content-grid">
+          <article class="main-panel">
+            <div class="panel-header">
+              <div>
+                <p id="modules-eyebrow" class="eyebrow">制作组成</p>
+                <h3 id="modules-title">原料与步骤</h3>
+              </div>
+            </div>
+            <div id="modules-list" class="side-panel"></div>
+          </article>
+
+          <aside class="side-panel">
+            <article class="dashboard-card">
+              <h3 id="plan-title">生产计划</h3>
+              <div class="side-panel">
+                <div class="metric-card">
+                  <span id="plan-before-label" class="support-copy">服务之前</span>
+                  <strong id="plan-before-value">-</strong>
+                </div>
+                <div class="metric-card">
+                  <span id="plan-day-label" class="support-copy">服务当天</span>
+                  <strong id="plan-day-value">-</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="dashboard-card">
+              <h3 id="notes-title">注意事项</h3>
+              <div id="notes-value" class="support-copy">-</div>
+            </article>
+
+            <article class="dashboard-card">
+              <h3 id="allergens-title">过敏原</h3>
+              <div id="allergens-value" class="support-copy">-</div>
+            </article>
+
+            <article class="dashboard-card">
+              <h3 id="methodology-records-title">方法论使用记录</h3>
+              <div id="methodology-records-value" class="support-copy">-</div>
+            </article>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="../desktop-client.js"></script>
+    <script src="./dish-detail.js"></script>
+  </body>
+</html>

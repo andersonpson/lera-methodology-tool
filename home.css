@@ -1,0 +1,284 @@
+.home-page {
+  min-height: 100dvh;
+}
+
+.home-page::before {
+  display: none;
+}
+
+.home-shell {
+  width: min(1500px, calc(100% - 56px));
+  margin: 0 auto;
+  padding: 30px 0 42px;
+  display: grid;
+  gap: 34px;
+}
+
+.home-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px 24px;
+  align-items: end;
+  padding: 2px 0 6px;
+}
+
+.home-masthead-copy {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-masthead h1 {
+  margin: 0;
+  max-width: none;
+  font-weight: 400;
+  font-size: clamp(3.35rem, 7.2vw, 6.9rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.home-copy {
+  max-width: 32ch;
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.home-masthead-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.home-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 1.2em;
+  padding-top: 2px;
+}
+
+.home-arena {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.88fr);
+  gap: 36px;
+  align-items: start;
+}
+
+.home-focus,
+.home-side {
+  min-width: 0;
+}
+
+.home-focus {
+  display: grid;
+  gap: 22px;
+  padding: 20px 0 0;
+}
+
+.home-focus-intro,
+.home-directory-head {
+  display: grid;
+  gap: 8px;
+}
+
+.home-section-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.home-focus-body {
+  display: grid;
+  gap: 12px;
+}
+
+.home-focus-body h2,
+.home-side-module h3,
+.home-directory-item h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.home-focus-body h2 {
+  max-width: none;
+  font-size: clamp(2.7rem, 4.7vw, 4.35rem);
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
+.home-focus .support-copy {
+  max-width: 30ch;
+  margin: 0;
+}
+
+.home-side {
+  display: grid;
+  gap: 22px;
+  padding-top: 8px;
+}
+
+.home-side-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.home-side-module {
+  display: grid;
+  gap: 12px;
+  padding: 18px 0 0;
+}
+
+.home-side-module h3 {
+  font-size: clamp(1.55rem, 2.4vw, 2rem);
+  line-height: 1;
+}
+
+.home-side-module .support-copy {
+  max-width: 26ch;
+  margin: 0;
+}
+
+.home-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.home-command-link,
+.home-inline-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 15px;
+  border: 1px solid var(--accent-strong);
+  color: #f7f5ef;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.home-command-link:hover,
+.home-inline-link:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.home-command-link-secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.home-command-link-secondary:hover {
+  background: rgba(255, 252, 246, 0.94);
+  border-color: rgba(49, 75, 68, 0.3);
+}
+
+.home-directory {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+  padding-top: 18px;
+}
+
+.home-directory-list {
+  display: grid;
+  gap: 16px;
+}
+
+.home-directory-item {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+}
+
+.home-directory-item h3 {
+  font-size: 1.3rem;
+  line-height: 1.05;
+}
+
+.home-directory-item .support-copy {
+  max-width: 24ch;
+  margin: 0;
+}
+
+.home-inline-link {
+  justify-self: start;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  border-bottom: 1px solid rgba(49, 75, 68, 0.26);
+}
+
+.home-inline-link:hover {
+  background: transparent;
+  border-color: rgba(49, 75, 68, 0.52);
+}
+
+.home-page .eyebrow {
+  margin: 0;
+}
+
+.home-page .eyebrow:empty,
+.home-page .home-section-label:empty {
+  display: none;
+}
+
+@media (max-width: 1160px) {
+  .home-arena {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .home-side {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 880px) {
+  .home-masthead {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .home-masthead-tools {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-shell {
+    width: min(100% - 30px, 1500px);
+    padding: 18px 0 30px;
+    gap: 24px;
+  }
+
+  .home-masthead h1 {
+    max-width: none;
+    font-size: clamp(2.8rem, 14vw, 4.9rem);
+  }
+
+  .home-focus {
+    gap: 18px;
+  }
+
+  .home-focus-body h2 {
+    max-width: none;
+    font-size: clamp(2.2rem, 10vw, 3.35rem);
+  }
+}
