@@ -26,6 +26,25 @@
   gap: 12px;
 }
 
+#report-changes-section #methodology-report-rollbacks {
+  max-height: min(62vh, 920px);
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#report-changes-section #methodology-report-rollbacks::-webkit-scrollbar {
+  width: 10px;
+}
+
+#report-changes-section #methodology-report-rollbacks::-webkit-scrollbar-thumb {
+  background: rgba(48, 43, 37, 0.18);
+  border-radius: 999px;
+}
+
+#report-changes-section #methodology-report-rollbacks::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .catalog-card {
   display: grid;
   gap: 12px;
