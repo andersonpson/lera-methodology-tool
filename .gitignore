@@ -5,3 +5,13 @@ electron-release/
 restaurant-database/__pycache__/
 restaurant-database/*.pyc
 restaurant-database/restaurant.db
+_project_snapshots/
+笔记本整理/
+docs/
+*.docx
+*.pdf
+*.yaml
+BILINGUAL_ZH_ES_REFERENCE.txt
+TRANSLATION_REVIEW_SUGGESTIONS.md
+UNUSED_FILES_REPORT.md
+NAVIGATION_MAP.md
