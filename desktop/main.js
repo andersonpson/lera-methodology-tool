@@ -1,6 +1,6 @@
 const path = require("node:path");
 const fs = require("node:fs");
-const { app, BrowserWindow, dialog, ipcMain } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const { createDesktopApi } = require("./api");
 
 let mainWindow = null;
@@ -41,6 +41,10 @@ function createWindow() {
             webPreferences: windowWebPreferences
           }
         };
+      }
+      if (target.protocol === "http:" || target.protocol === "https:") {
+        shell.openExternal(url);
+        return { action: "deny" };
       }
     } catch {}
     return { action: "deny" };
