@@ -25,6 +25,7 @@ const elements = {
   backupRestoreField: document.querySelector(".home-backup-restore-field"),
   backupListBlock: document.querySelector(".home-backup-list-block"),
   backupList: document.getElementById("backup-list"),
+  backupSummaryValue: document.getElementById("backup-summary-value"),
   createBackupButton: document.getElementById("create-backup-button"),
   downloadSelectedBackupButton: document.getElementById("download-selected-backup-button"),
   downloadJsonBackupButton: document.getElementById("download-json-backup-button"),
@@ -83,28 +84,33 @@ const i18n = {
     codebookCopy: "",
     open: "打开",
     backupCardEyebrow: "",
-    backupCardTitle: "备份与恢复",
-    backupCardCopy: "服务器自动保存数据库快照。",
-    backupLegacyCopy: "当前环境仅保留 JSON 备份。",
-    backupLatestAutoLabel: "自动",
-    backupLatestManualLabel: "手动",
-    backupCountLabel: "数量",
+    backupCardTitle: "数据安全",
+    backupCardCopy: "",
+    backupLegacyCopy: "",
+    backupSummaryLabel: "状态",
+    backupSummaryReady: "已自动保存",
+    backupSummaryEmpty: "暂无保存记录",
+    backupSummaryLegacy: "可手动保存",
+    backupManage: "管理保存记录",
+    backupLatestAutoLabel: "最近自动",
+    backupLatestManualLabel: "最近手动",
+    backupCountLabel: "记录数",
     backupCreate: "立即备份",
-    backupDownloadSelected: "下载当前快照",
+    backupDownloadSelected: "下载这份记录",
     backupDownloadJson: "下载 JSON",
-    backupRestoreLabel: "恢复来源",
-    backupPrepareRestore: "准备恢复",
+    backupRestoreLabel: "选择一份记录",
+    backupPrepareRestore: "恢复这份记录",
     backupConfirmRestore: "确认恢复",
     backupCancelRestore: "取消",
     backupImportJson: "读取旧 JSON",
     backupListEyebrow: "",
-    backupListTitle: "最近快照",
-    backupDefaultNote: "自动快照在后台进行，JSON 仅作旧备份兜底。",
-    backupEmptyNote: "等待第一份自动快照。",
-    backupLegacyNote: "如果在旧环境中工作，继续使用 JSON 备份即可。",
-    backupRestoreWarning: "恢复会直接覆盖当前数据库，系统会先另存一份恢复前快照。",
+    backupListTitle: "保存记录",
+    backupDefaultNote: "",
+    backupEmptyNote: "",
+    backupLegacyNote: "",
+    backupRestoreWarning: "恢复后，当前内容会回到这份记录。",
     backupNoData: "尚无",
-    backupNoList: "还没有快照",
+    backupNoList: "还没有保存记录",
     backupSourceAuto: "自动",
     backupSourceManual: "手动",
     backupSourceBeforeRestore: "恢复前",
@@ -158,28 +164,33 @@ const i18n = {
     codebookCopy: "",
     open: "Abrir",
     backupCardEyebrow: "",
-    backupCardTitle: "Copias y recuperación",
-    backupCardCopy: "El servidor guarda instantáneas automáticas de la base de datos.",
-    backupLegacyCopy: "En este entorno solo queda disponible la copia JSON.",
-    backupLatestAutoLabel: "Automática",
-    backupLatestManualLabel: "Manual",
-    backupCountLabel: "Cantidad",
+    backupCardTitle: "Seguridad de datos",
+    backupCardCopy: "",
+    backupLegacyCopy: "",
+    backupSummaryLabel: "Estado",
+    backupSummaryReady: "Guardado automático activo",
+    backupSummaryEmpty: "Todavía no hay registros",
+    backupSummaryLegacy: "Se puede guardar manualmente",
+    backupManage: "Gestionar guardados",
+    backupLatestAutoLabel: "Último automático",
+    backupLatestManualLabel: "Último manual",
+    backupCountLabel: "Registros",
     backupCreate: "Crear copia ahora",
-    backupDownloadSelected: "Descargar instantánea",
+    backupDownloadSelected: "Descargar este registro",
     backupDownloadJson: "Descargar JSON",
-    backupRestoreLabel: "Restaurar desde",
-    backupPrepareRestore: "Preparar restauración",
+    backupRestoreLabel: "Elegir un registro",
+    backupPrepareRestore: "Restaurar este registro",
     backupConfirmRestore: "Confirmar restauración",
     backupCancelRestore: "Cancelar",
     backupImportJson: "Abrir JSON antiguo",
     backupListEyebrow: "",
-    backupListTitle: "Instantáneas recientes",
-    backupDefaultNote: "Las instantáneas automáticas quedan en segundo plano; JSON solo sirve como respaldo antiguo.",
-    backupEmptyNote: "Esperando la primera instantánea automática.",
-    backupLegacyNote: "Si trabajas en un entorno antiguo, sigue usando la copia JSON.",
-    backupRestoreWarning: "La restauración sobrescribe la base de datos actual y antes se guardará una copia de seguridad previa.",
+    backupListTitle: "Registros guardados",
+    backupDefaultNote: "",
+    backupEmptyNote: "",
+    backupLegacyNote: "",
+    backupRestoreWarning: "Al restaurar, el contenido actual volverá a este registro.",
     backupNoData: "Sin copia",
-    backupNoList: "Todavía no hay instantáneas",
+    backupNoList: "Todavía no hay registros",
     backupSourceAuto: "Automática",
     backupSourceManual: "Manual",
     backupSourceBeforeRestore: "Antes de restaurar",
@@ -276,6 +287,9 @@ function renderBackupPanel() {
   setText("backup-card-eyebrow", copy.backupCardEyebrow);
   setText("backup-card-title", copy.backupCardTitle);
   setText("backup-card-copy", supportsSnapshots ? copy.backupCardCopy : copy.backupLegacyCopy);
+  setText("backup-summary-label", copy.backupSummaryLabel);
+  setText("backup-summary-value", getBackupSummaryText());
+  setText("backup-details-summary", copy.backupManage);
   setText("backup-latest-auto-label", copy.backupLatestAutoLabel);
   setText("backup-latest-manual-label", copy.backupLatestManualLabel);
   setText("backup-count-label", copy.backupCountLabel);
@@ -319,13 +333,7 @@ function renderBackupPanel() {
     setStatus(copy.backupLoading);
   }
 
-  const noteText = backup.restoreArmed
-    ? copy.backupRestoreWarning
-    : supportsSnapshots
-      ? backup.snapshots.length
-        ? copy.backupDefaultNote
-        : copy.backupEmptyNote
-      : copy.backupLegacyNote;
+  const noteText = backup.restoreArmed ? copy.backupRestoreWarning : "";
   setText("backup-restore-note", noteText);
 
   renderBackupList();
@@ -602,6 +610,13 @@ function syncRestoreSelect() {
 
 function getSelectedSnapshot() {
   return state.backup.snapshots.find((item) => item.id === state.backup.selectedSnapshotId) || null;
+}
+
+function getBackupSummaryText() {
+  const copy = getCopy();
+  if (state.backup.supported === false) return copy.backupSummaryLegacy;
+  if (state.backup.latestAuto || state.backup.latestManual) return copy.backupSummaryReady;
+  return copy.backupSummaryEmpty;
 }
 
 function getCopy() {

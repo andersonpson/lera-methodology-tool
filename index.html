@@ -39,57 +39,6 @@
 
         <section class="home-side">
           <div class="home-side-stack">
-            <article class="home-side-module home-backup-module">
-              <div class="home-backup-head">
-                <p id="backup-card-eyebrow" class="eyebrow"></p>
-                <h3 id="backup-card-title">Copias y recuperación</h3>
-                <p id="backup-card-copy" class="support-copy"></p>
-              </div>
-
-              <div class="home-backup-metrics">
-                <article class="home-backup-metric">
-                  <span id="backup-latest-auto-label">Automática</span>
-                  <strong id="backup-latest-auto-value">-</strong>
-                </article>
-                <article class="home-backup-metric">
-                  <span id="backup-latest-manual-label">Manual</span>
-                  <strong id="backup-latest-manual-value">-</strong>
-                </article>
-                <article class="home-backup-metric">
-                  <span id="backup-count-label">Copias</span>
-                  <strong id="backup-count-value">-</strong>
-                </article>
-              </div>
-
-              <div class="home-command-actions">
-                <button id="create-backup-button" class="secondary-button" type="button">Crear copia ahora</button>
-                <button id="download-selected-backup-button" class="secondary-button" type="button">Descargar copia</button>
-                <button id="download-json-backup-button" class="secondary-button" type="button">Descargar JSON</button>
-              </div>
-
-              <label class="home-backup-restore-field">
-                <span id="backup-restore-label">Restaurar desde</span>
-                <select id="backup-restore-select"></select>
-              </label>
-
-              <div class="home-command-actions">
-                <button id="restore-backup-button" class="secondary-button" type="button">Preparar restauración</button>
-                <button id="cancel-restore-button" class="secondary-button home-command-link-secondary" type="button" hidden>Cancelar</button>
-                <button id="import-json-backup-button" class="secondary-button home-command-link-secondary" type="button">Abrir JSON antiguo</button>
-              </div>
-
-              <p id="backup-restore-note" class="support-copy home-backup-note"></p>
-              <p id="backup-status" class="support-copy home-status" aria-live="polite"></p>
-
-              <div class="home-backup-list-block">
-                <div class="home-directory-head">
-                  <p id="backup-list-eyebrow" class="eyebrow"></p>
-                  <p id="backup-list-title" class="home-section-label">Últimas copias</p>
-                </div>
-                <div id="backup-list" class="home-backup-list"></div>
-              </div>
-            </article>
-
             <article class="home-side-module">
               <p id="entry-card-eyebrow" class="eyebrow"></p>
               <h3 id="entry-card-title">Registro de platos</h3>
@@ -145,6 +94,70 @@
               </article>
             </div>
           </aside>
+
+          <article class="home-side-module home-backup-module home-support-module">
+            <div class="home-backup-summary">
+              <div class="home-backup-head">
+                <p id="backup-card-eyebrow" class="eyebrow"></p>
+                <h3 id="backup-card-title">Seguridad de datos</h3>
+                <p id="backup-card-copy" class="support-copy"></p>
+              </div>
+
+              <div class="home-backup-overview">
+                <span id="backup-summary-label" class="home-backup-summary-label">Guardado automático</span>
+                <p id="backup-summary-value" class="home-backup-summary-value"></p>
+              </div>
+            </div>
+
+            <details id="backup-details" class="home-backup-details">
+              <summary id="backup-details-summary" class="home-backup-details-summary">Gestionar copias</summary>
+
+              <div class="home-backup-panel">
+                <div class="home-backup-metrics">
+                  <article class="home-backup-metric">
+                    <span id="backup-latest-auto-label">Automática</span>
+                    <strong id="backup-latest-auto-value">-</strong>
+                  </article>
+                  <article class="home-backup-metric">
+                    <span id="backup-latest-manual-label">Manual</span>
+                    <strong id="backup-latest-manual-value">-</strong>
+                  </article>
+                  <article class="home-backup-metric">
+                    <span id="backup-count-label">Copias</span>
+                    <strong id="backup-count-value">-</strong>
+                  </article>
+                </div>
+
+                <div class="home-command-actions">
+                  <button id="create-backup-button" class="secondary-button" type="button">Crear copia ahora</button>
+                  <button id="download-selected-backup-button" class="secondary-button" type="button">Descargar copia</button>
+                  <button id="download-json-backup-button" class="secondary-button" type="button">Descargar JSON</button>
+                </div>
+
+                <label class="home-backup-restore-field">
+                  <span id="backup-restore-label">Restaurar desde</span>
+                  <select id="backup-restore-select"></select>
+                </label>
+
+                <div class="home-command-actions">
+                  <button id="restore-backup-button" class="secondary-button" type="button">Preparar restauración</button>
+                  <button id="cancel-restore-button" class="secondary-button home-command-link-secondary" type="button" hidden>Cancelar</button>
+                  <button id="import-json-backup-button" class="secondary-button home-command-link-secondary" type="button">Abrir JSON antiguo</button>
+                </div>
+
+                <p id="backup-restore-note" class="support-copy home-backup-note"></p>
+                <p id="backup-status" class="support-copy home-status" aria-live="polite"></p>
+
+                <div class="home-backup-list-block">
+                  <div class="home-directory-head">
+                    <p id="backup-list-eyebrow" class="eyebrow"></p>
+                    <p id="backup-list-title" class="home-section-label">Últimas copias</p>
+                  </div>
+                  <div id="backup-list" class="home-backup-list"></div>
+                </div>
+              </div>
+            </details>
+          </article>
         </section>
       </section>
     </main>

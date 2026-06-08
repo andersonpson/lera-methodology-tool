@@ -142,20 +142,108 @@
   margin: 0;
 }
 
+.home-support-module {
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(48, 43, 37, 0.12);
+}
+
 .home-backup-module {
-  gap: 16px;
+  gap: 10px;
 }
 
 .home-backup-head,
 .home-backup-list-block {
   display: grid;
-  gap: 10px;
+  gap: 4px;
 }
 
 .home-backup-module .support-copy,
 .home-backup-note,
 .home-status {
   max-width: none;
+}
+
+.home-backup-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 24px;
+  align-items: baseline;
+}
+
+.home-backup-head h3 {
+  font-size: 1.05rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.home-backup-head .support-copy {
+  display: none;
+}
+
+.home-backup-overview {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-self: end;
+  text-align: right;
+}
+
+.home-backup-summary-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.home-backup-summary-value {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.home-backup-details {
+  display: grid;
+  gap: 10px;
+}
+
+.home-backup-details[open] {
+  padding-top: 4px;
+}
+
+.home-backup-details-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.2;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  border-bottom: 1px solid rgba(48, 43, 37, 0.14);
+}
+
+.home-backup-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-backup-details-summary::after {
+  content: "+";
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.home-backup-details[open] .home-backup-details-summary::after {
+  content: "-";
+}
+
+.home-backup-panel {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
 }
 
 .home-backup-metrics {
@@ -297,7 +385,7 @@
 
 .home-backup-empty {
   margin: 0;
-  padding: 14px 0 0;
+  padding: 10px 0 0;
   color: var(--muted);
 }
 
@@ -454,6 +542,16 @@
 
   .home-backup-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .home-backup-summary {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .home-backup-overview {
+    justify-self: start;
+    text-align: left;
   }
 
   .home-backup-metric + .home-backup-metric {
