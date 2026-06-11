@@ -1,7 +1,7 @@
 (function setupDesktopClient() {
   const desktop = window.leraDesktop;
-  if (!desktop?.request) return;
-
+  const API_ORIGIN_STORAGE_KEY = "lera-api-origin";
+  const FILE_FALLBACK_API_ORIGINS = ["http://127.0.0.1:8080", "http://43.134.115.245:8080"];
   const originalFetch = window.fetch.bind(window);
 
   function normalizeHeaders(headers) {
@@ -11,24 +11,104 @@
     return { ...headers };
   }
 
+  function normalizeOrigin(origin) {
+    return typeof origin === "string" ? origin.trim().replace(/\/+$/, "") : "";
+  }
+
+  function getStoredApiOrigin() {
+    try {
+      return normalizeOrigin(window.localStorage.getItem(API_ORIGIN_STORAGE_KEY));
+    } catch {
+      return "";
+    }
+  }
+
+  function persistApiOrigin(origin) {
+    const normalized = normalizeOrigin(origin);
+    if (!normalized) return;
+    try {
+      window.localStorage.setItem(API_ORIGIN_STORAGE_KEY, normalized);
+    } catch {}
+  }
+
+  function getApiOriginCandidates() {
+    const candidates = [];
+
+    function pushCandidate(origin) {
+      const normalized = normalizeOrigin(origin);
+      if (!normalized || candidates.includes(normalized)) return;
+      candidates.push(normalized);
+    }
+
+    pushCandidate(getStoredApiOrigin());
+
+    if (/^https?:$/.test(window.location.protocol)) {
+      pushCandidate(window.location.origin);
+    }
+
+    FILE_FALLBACK_API_ORIGINS.forEach(pushCandidate);
+    return candidates;
+  }
+
+  function toAbsoluteApiUrl(url, origin) {
+    if (typeof url !== "string" || !url.startsWith("/api/")) return url;
+    const normalizedOrigin = normalizeOrigin(origin);
+    return normalizedOrigin ? `${normalizedOrigin}${url}` : url;
+  }
+
   window.fetch = async function desktopFetch(input, init = {}) {
     const url = typeof input === "string" ? input : input?.url;
+
     if (typeof url === "string" && url.startsWith("/api/")) {
       const method = init.method || (typeof input !== "string" ? input?.method : "GET") || "GET";
+      const upperMethod = String(method).toUpperCase();
       const headers = normalizeHeaders(init.headers || (typeof input !== "string" ? input?.headers : undefined));
       const body = init.body ?? null;
-      const response = await desktop.request({ url, method, headers, body });
-      const contentType =
-        response?.headers?.["Content-Type"] ||
-        response?.headers?.["content-type"] ||
-        "application/json; charset=utf-8";
-      const payload =
-        typeof response?.body === "string" ? response.body : JSON.stringify(response?.body ?? {});
-      return new Response(payload, {
-        status: response?.status || 200,
-        headers: { "Content-Type": contentType }
-      });
+
+      if (desktop?.request) {
+        const response = await desktop.request({ url, method, headers, body });
+        const contentType =
+          response?.headers?.["Content-Type"] ||
+          response?.headers?.["content-type"] ||
+          "application/json; charset=utf-8";
+        const payload =
+          typeof response?.body === "string" ? response.body : JSON.stringify(response?.body ?? {});
+        return new Response(payload, {
+          status: response?.status || 200,
+          headers: { "Content-Type": contentType }
+        });
+      }
+
+      if (window.location.protocol === "file:") {
+        let lastError = null;
+
+        for (const origin of getApiOriginCandidates()) {
+          try {
+            const response = await originalFetch(toAbsoluteApiUrl(url, origin), {
+              ...init,
+              method,
+              headers,
+              body
+            });
+
+            if (!response.ok && (upperMethod === "GET" || upperMethod === "HEAD")) {
+              lastError = new Error(`API request failed at ${origin}${url} with status ${response.status}`);
+              continue;
+            }
+
+            persistApiOrigin(origin);
+            return response;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        if (lastError) {
+          throw lastError;
+        }
+      }
     }
+
     return originalFetch(input, init);
   };
 })();
