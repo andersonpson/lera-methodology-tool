@@ -223,6 +223,7 @@ DEFAULT_CODEBOOK = [
     {"category": "product", "code": "PA9", "parent_code": "PA", "label_zh": "丘鹬", "label_es": "Becada", "status": "active", "notes": ""},
     {"category": "product", "code": "PA10", "parent_code": "PA", "label_zh": "鸭", "label_es": "Pato", "status": "active", "notes": ""},
     {"category": "product", "code": "PA11", "parent_code": "PA", "label_zh": "小凫", "label_es": "Cerceta", "status": "active", "notes": ""},
+    {"category": "product", "code": "PA12", "parent_code": "PA", "label_zh": "野兔", "label_es": "Liebre", "status": "active", "notes": "ZH: 适用于以野兔为主角的菜谱或测试记录。 ES: Usar cuando la liebre sea el producto protagonista del plato o de la receta."},
     {"category": "product", "code": "PAx", "parent_code": "PA", "label_zh": "新增小型野味类别", "label_es": "Nueva categoría de caza menor", "status": "active", "notes": ""},
     {"category": "product", "code": "PB", "parent_code": "", "label_zh": "大型野味", "label_es": "Caza mayor", "status": "active", "notes": ""},
     {"category": "product", "code": "PB1", "parent_code": "PB", "label_zh": "野猪", "label_es": "Jabalí", "status": "active", "notes": ""},
@@ -239,6 +240,9 @@ DEFAULT_CODEBOOK = [
     {"category": "product", "code": "PCx", "parent_code": "PC", "label_zh": "新增农场类别", "label_es": "Nueva categoría de granja", "status": "active", "notes": ""},
     {"category": "product", "code": "PH", "parent_code": "", "label_zh": "园圃", "label_es": "Huerto", "status": "active", "notes": ""},
     {"category": "product", "code": "PH1", "parent_code": "PH", "label_zh": "豆类", "label_es": "Legumbres", "status": "active", "notes": ""},
+    {"category": "product", "code": "PH2", "parent_code": "PH", "label_zh": "叶与茎类", "label_es": "Hojas y tallos", "status": "active", "notes": "ZH: 适用于菠菜、甜菜叶、生菜、嫩茎和芽苗类蔬菜。 ES: Usar para acelga, espinaca, lechuga, puerro tierno y otras verduras de hoja o tallo."},
+    {"category": "product", "code": "PH3", "parent_code": "PH", "label_zh": "鳞茎、根与块茎", "label_es": "Bulbos, raíces y tubérculos", "status": "active", "notes": "ZH: 适用于洋葱、大蒜、芜菁、胡萝卜等根茎类蔬菜。 ES: Usar para cebolla, ajo, nabo, zanahoria y otras hortalizas de bulbo, raíz o tubérculo."},
+    {"category": "product", "code": "PH4", "parent_code": "PH", "label_zh": "果实与花类蔬菜", "label_es": "Frutos y flores de huerto", "status": "active", "notes": "ZH: 适用于番茄、南瓜、茄子、洋蓟等果实或花类蔬菜。 ES: Usar para tomate, calabaza, berenjena, alcachofa y otras hortalizas de fruto o flor."},
     {"category": "product", "code": "PHx", "parent_code": "PH", "label_zh": "新增园圃类别", "label_es": "Nueva categoría de huerto", "status": "active", "notes": ""},
     {"category": "product", "code": "PZ1", "parent_code": "PZ", "label_zh": "未归类零散记录", "label_es": "Registro suelto sin clasificar", "status": "active", "notes": "ZH: 保留给零散食谱使用。 ES: Reservado para el uso de recetas sueltas."},
     {"category": "product", "code": "PZ", "parent_code": "", "label_zh": "零散记录", "label_es": "Registro suelto", "status": "active", "notes": "ZH: 保留给尚未归入正式原料分类的零散食谱。 ES: Reservado para recetas sueltas que todavía no se han clasificado dentro de la categoría formal de producto."},
@@ -424,6 +428,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._handle_post_methodology()
         if parsed.path == "/api/backup":
             return self._handle_post_backup()
+        if parsed.path == "/api/backup-restore-db":
+            return self._handle_post_backup_restore_db()
         if parsed.path == "/api/backup-snapshots":
             return self._handle_post_backup_snapshot()
         if parsed.path == "/api/backup-restore":
@@ -454,6 +460,9 @@ class Handler(SimpleHTTPRequestHandler):
     def _read_body(self):
         length = int(self.headers.get("Content-Length", "0"))
         return self.rfile.read(length) if length else b""
+
+    def _read_binary_body(self):
+        return self._read_body()
 
     def _read_json(self):
         raw = self._read_body() or b"{}"
@@ -1302,6 +1311,28 @@ class Handler(SimpleHTTPRequestHandler):
         except FileNotFoundError:
             return self._send_json({"error": "Snapshot not found"}, status=HTTPStatus.NOT_FOUND)
         self._send_json({"ok": True, **result, **get_backup_snapshot_summary()})
+
+    def _handle_post_backup_restore_db(self):
+        raw = self._read_binary_body()
+        if not raw:
+            return self._send_json({"error": "Missing backup file body"}, status=HTTPStatus.BAD_REQUEST)
+
+        restore_dir = BACKUP_DIR / "incoming"
+        restore_dir.mkdir(parents=True, exist_ok=True)
+        temp_name = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
+        temp_path = restore_dir / f"{temp_name}.db"
+
+        safety_snapshot = create_backup_snapshot("before-db-import")
+        try:
+            temp_path.write_bytes(raw)
+            with BACKUP_LOCK:
+                with sqlite3.connect(temp_path) as source_conn, sqlite3.connect(DB_PATH) as target_conn:
+                    source_conn.backup(target_conn)
+            init_db()
+        finally:
+            temp_path.unlink(missing_ok=True)
+
+        self._send_json({"ok": True, "safety_snapshot": safety_snapshot, **get_backup_snapshot_summary()})
 
 
 def main():

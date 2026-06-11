@@ -19,6 +19,15 @@ function parseJsonBody(body) {
   return body;
 }
 
+function getBinaryBody(body) {
+  if (!body) return Buffer.alloc(0);
+  if (Buffer.isBuffer(body)) return body;
+  if (body instanceof ArrayBuffer) return Buffer.from(body);
+  if (typeof body === "string") return Buffer.from(body, "binary");
+  if (body instanceof Uint8Array) return Buffer.from(body);
+  return Buffer.from(String(body));
+}
+
 function parseJsonText(value, fallback = {}) {
   if (!value) return fallback;
   try {
@@ -89,6 +98,42 @@ const RESERVED_CODEBOOK_ROWS = [
     label_es: "Registro suelto sin clasificar",
     status: "active",
     notes: "ZH: 保留给零散食谱使用。 ES: Reservado para el uso de recetas sueltas."
+  },
+  {
+    category: "product",
+    code: "PA12",
+    parent_code: "PA",
+    label_zh: "野兔",
+    label_es: "Liebre",
+    status: "active",
+    notes: "ZH: 适用于以野兔为主角的菜谱或测试记录。 ES: Usar cuando la liebre sea el producto protagonista del plato o de la receta."
+  },
+  {
+    category: "product",
+    code: "PH2",
+    parent_code: "PH",
+    label_zh: "叶与茎类",
+    label_es: "Hojas y tallos",
+    status: "active",
+    notes: "ZH: 适用于菠菜、甜菜叶、生菜、嫩茎和芽苗类蔬菜。 ES: Usar para acelga, espinaca, lechuga, puerro tierno y otras verduras de hoja o tallo."
+  },
+  {
+    category: "product",
+    code: "PH3",
+    parent_code: "PH",
+    label_zh: "鳞茎、根与块茎",
+    label_es: "Bulbos, raíces y tubérculos",
+    status: "active",
+    notes: "ZH: 适用于洋葱、大蒜、芜菁、胡萝卜等根茎类蔬菜。 ES: Usar para cebolla, ajo, nabo, zanahoria y otras hortalizas de bulbo, raíz o tubérculo."
+  },
+  {
+    category: "product",
+    code: "PH4",
+    parent_code: "PH",
+    label_zh: "果实与花类蔬菜",
+    label_es: "Frutos y flores de huerto",
+    status: "active",
+    notes: "ZH: 适用于番茄、南瓜、茄子、洋蓟等果实或花类蔬菜。 ES: Usar para tomate, calabaza, berenjena, alcachofa y otras hortalizas de fruto o flor."
   }
 ];
 
@@ -915,6 +960,23 @@ function createDesktopApi({ dbPath, bundledDbPath }) {
       if (upperMethod === "POST" && pathname === "/api/backup") {
         importBackupPayload(parseJsonBody(body));
         return jsonResponse({ ok: true });
+      }
+      if (upperMethod === "POST" && pathname === "/api/backup-restore-db") {
+        const raw = getBinaryBody(body);
+        const tempPath = path.join(path.dirname(dbPath), `incoming-${Date.now()}.db`);
+        fs.writeFileSync(tempPath, raw);
+        try {
+          runInTransaction(db, () => {
+            const source = new DatabaseSync(tempPath);
+            source.backup(db);
+            source.close();
+          });
+          return jsonResponse({ ok: true });
+        } finally {
+          try {
+            fs.unlinkSync(tempPath);
+          } catch {}
+        }
       }
       if (upperMethod === "DELETE" && pathname === "/api/dishes") {
         const dishCode = getQueryParam(query, "dish_code", "dishCode");

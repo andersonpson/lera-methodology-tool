@@ -33,6 +33,7 @@ const elements = {
   restoreButton: document.getElementById("restore-backup-button"),
   cancelRestoreButton: document.getElementById("cancel-restore-button"),
   importJsonBackupButton: document.getElementById("import-json-backup-button"),
+  importDbBackupButton: document.getElementById("import-db-backup-button"),
   backupRestoreNote: document.getElementById("backup-restore-note")
 };
 
@@ -103,6 +104,7 @@ const i18n = {
     backupConfirmRestore: "确认恢复",
     backupCancelRestore: "取消",
     backupImportJson: "读取旧 JSON",
+    backupImportDb: "读取 DB",
     backupListEyebrow: "",
     backupListTitle: "保存记录",
     backupDefaultNote: "",
@@ -183,6 +185,7 @@ const i18n = {
     backupConfirmRestore: "Confirmar restauración",
     backupCancelRestore: "Cancelar",
     backupImportJson: "Abrir JSON antiguo",
+    backupImportDb: "Abrir DB",
     backupListEyebrow: "",
     backupListTitle: "Registros guardados",
     backupDefaultNote: "",
@@ -223,6 +226,7 @@ elements.restoreSelect?.addEventListener("change", handleSnapshotSelection);
 elements.restoreButton?.addEventListener("click", handleRestoreAction);
 elements.cancelRestoreButton?.addEventListener("click", cancelRestore);
 elements.importJsonBackupButton?.addEventListener("click", openJsonBackup);
+elements.importDbBackupButton?.addEventListener("click", openDbBackup);
 elements.backupFileInput?.addEventListener("change", importJsonBackup);
 elements.backupList?.addEventListener("click", handleSnapshotListClick);
 
@@ -300,6 +304,7 @@ function renderBackupPanel() {
   setText("restore-backup-button", backup.restoreArmed ? copy.backupConfirmRestore : copy.backupPrepareRestore);
   setText("cancel-restore-button", copy.backupCancelRestore);
   setText("import-json-backup-button", copy.backupImportJson);
+  setText("import-db-backup-button", copy.backupImportDb);
   setText("backup-list-eyebrow", copy.backupListEyebrow);
   setText("backup-list-title", copy.backupListTitle);
 
@@ -474,6 +479,20 @@ async function openJsonBackup() {
   elements.backupFileInput?.click();
 }
 
+async function openDbBackup() {
+  const copy = getCopy();
+  if (state.backup.busy) return;
+
+  if (desktopBridge?.importBackupDb && state.backup.supported === false) {
+    setStatus(copy.backupImportBusy);
+    const result = await desktopBridge.importBackupDb();
+    handleDesktopLegacyStatus(result?.status);
+    return;
+  }
+
+  elements.backupFileInput?.click();
+}
+
 async function importJsonBackup(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -485,14 +504,24 @@ async function importJsonBackup(event) {
   renderBackupPanel();
 
   try {
-    const text = await file.text();
-    const payload = JSON.parse(text);
-    await requestJson("/api/backup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    setStatus(copy.backupImported);
+    if (isDbBackupFile(file)) {
+      const arrayBuffer = await file.arrayBuffer();
+      await requestJson("/api/backup-restore-db", {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream", "X-Backup-Filename": file.name },
+        body: arrayBuffer
+      });
+      setStatus(copy.backupImported);
+    } else {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      await requestJson("/api/backup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      setStatus(copy.backupImported);
+    }
     if (state.backup.supported !== false) {
       await loadBackupSnapshots();
     }
@@ -504,6 +533,11 @@ async function importJsonBackup(event) {
     if (event.target) event.target.value = "";
     renderBackupPanel();
   }
+}
+
+function isDbBackupFile(file) {
+  const name = String(file?.name || "").toLowerCase();
+  return name.endsWith(".db") || file?.type === "application/x-sqlite3";
 }
 
 function handleSnapshotSelection(event) {

@@ -172,6 +172,30 @@ function setupIpc() {
     }
   });
 
+  ipcMain.handle("lera:backup-import-db", async () => {
+    try {
+      const target = await dialog.showOpenDialog(mainWindow, {
+        title: "Abrir base de datos",
+        properties: ["openFile"],
+        filters: [{ name: "SQLite", extensions: ["db", "sqlite", "sqlite3"] }]
+      });
+      if (target.canceled || !target.filePaths?.length) {
+        return { status: "cancelled" };
+      }
+      const raw = fs.readFileSync(target.filePaths[0]);
+      const result = await desktopApi.handleRequest({
+        url: "/api/backup-restore-db",
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: raw
+      });
+      return result?.body || { status: "imported" };
+    } catch (error) {
+      console.error(error);
+      return { status: "failed", message: String(error) };
+    }
+  });
+
   ipcMain.handle("lera:print-current-window", async (event) => {
     try {
       const targetWindow = BrowserWindow.fromWebContents(event.sender);

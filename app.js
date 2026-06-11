@@ -634,8 +634,6 @@ const i18n = {
       generalTexture: "整体质地",
       generalAroma: "整体香气",
       aromaContributors: "哪些元素提供整体香气",
-      aromaOverallDescription: "整体香气描述",
-      aromaOverallDescriptionPlaceholder: "",
       aromaNotes: "注意事项",
       aromaNotesPlaceholder: "",
       balanceDominantAttribute: "是否有明确主导风味属性",
@@ -1049,8 +1047,6 @@ const i18n = {
       generalTexture: "Textura",
       generalAroma: "Aroma",
       aromaContributors: "Qué elementos aportan el aroma global",
-      aromaOverallDescription: "Descripción aromática global",
-      aromaOverallDescriptionPlaceholder: "",
       aromaNotes: "Observaciones",
       aromaNotesPlaceholder: "",
       balanceDominantAttribute: "¿Existe un atributo gustativo dominante claramente definido?",
@@ -1956,13 +1952,6 @@ function renderStageFBalanceSection() {
     label: t("labels.aromaContributors"),
     options: getAromaContributorOptions()
   }, getStageValue("F", "aromaContributors")));
-  fieldset.appendChild(createField({
-    type: "textarea",
-    name: "aromaOverallDescription",
-    label: t("labels.aromaOverallDescription"),
-    placeholder: t("labels.aromaOverallDescriptionPlaceholder"),
-    rows: 3
-  }, getStageValue("F", "aromaOverallDescription")));
   fieldset.appendChild(createField({
     type: "textarea",
     name: "aromaNotes",
@@ -3306,7 +3295,11 @@ function getSelectedElements() {
 }
 
 function getStageValue(stageId, name) {
-  return getStageState(stageId)[name] || "";
+  const stageState = getStageState(stageId);
+  if (stageId === "F" && name === "generalAroma") {
+    return stageState.generalAroma || stageState.aromaOverallDescription || "";
+  }
+  return stageState[name] || "";
 }
 
 function getKitchenTests() {
@@ -4192,6 +4185,7 @@ function loadImportedState(payload, options = {}) {
     throw new Error("Invalid project file");
   }
 
+  normalizeImportedState(incomingState);
   state = mergeWithDefaults(incomingState);
   state.meta.editingProjectCode = String(options.editingProjectCode || state.meta.editingProjectCode || state.meta.projectCode || "").trim();
   state.meta.editingVersionCode = String(options.editingVersionCode || state.meta.editingVersionCode || state.meta.currentVersion || state.meta.projectCode || "").trim();
@@ -4226,6 +4220,15 @@ function mergeWithDefaults(incomingState) {
     merged.meta.editingVersionCode = "";
   }
   return merged;
+}
+
+function normalizeImportedState(incomingState) {
+  const stageF = incomingState?.stages?.F;
+  if (!stageF || typeof stageF !== "object") return;
+  if (!stageF.generalAroma && stageF.aromaOverallDescription) {
+    stageF.generalAroma = stageF.aromaOverallDescription;
+  }
+  delete stageF.aromaOverallDescription;
 }
 
 function getSaveFilename() {
