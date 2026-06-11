@@ -323,7 +323,7 @@
   width: 100%;
   min-height: 0;
   display: grid;
-  gap: 6px;
+  gap: 8px;
   padding: 13px 0;
   border: 0;
   border-bottom: 1px solid rgba(48, 43, 37, 0.1);
@@ -353,6 +353,12 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+}
+
+.home-backup-item-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .home-backup-source {
@@ -562,6 +568,10 @@
 
   .home-backup-list {
     max-height: 248px;
+  }
+
+  .home-backup-item-top {
+    gap: 8px;
   }
 
   .home-backup-module .home-command-actions > * {

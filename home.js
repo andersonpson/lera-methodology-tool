@@ -380,8 +380,10 @@ function renderBackupList() {
             <span class="home-backup-source">${escapeHtml(formatSnapshotSource(snapshot.source))}</span>
             <span class="home-backup-size">${escapeHtml(formatBytes(snapshot.size_bytes))}</span>
           </span>
-          <strong>${escapeHtml(formatSnapshotDate(snapshot.created_at))}</strong>
-          <small>${escapeHtml(snapshot.filename)}</small>
+          <span class="home-backup-item-body">
+            <strong>${escapeHtml(formatSnapshotDate(snapshot.created_at))}</strong>
+            <small>${escapeHtml(snapshot.filename)}</small>
+          </span>
         </button>
       `;
     })
