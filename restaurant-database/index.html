@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="./database.css" />
   </head>
-  <body>
+  <body class="entry-page">
     <div class="app-shell database-shell">
       <main class="workspace">
         <header class="topbar">
@@ -74,7 +74,12 @@
                 <p id="foundation-eyebrow" class="eyebrow">Generación del código</p>
                 <h4 id="foundation-label">Fundamento creativo F</h4>
               </div>
-              <div id="foundation-builder" class="foundation-builder"></div>
+              <div id="foundation-builder" class="foundation-builder">
+                <div class="foundation-card foundation-card-placeholder">
+                  <div class="foundation-card-label">F</div>
+                  <div class="support-copy">Cargando opciones...</div>
+                </div>
+              </div>
               <div id="foundation-note" class="support-copy top-gap-sm"></div>
               <div id="foundation-helper" class="foundation-preview top-gap-sm">No seleccionado</div>
             </section>
@@ -84,7 +89,12 @@
                 <p id="product-eyebrow" class="eyebrow">Generación del código</p>
                 <h4 id="product-label">Materia prima P</h4>
               </div>
-              <div id="product-builder" class="foundation-builder"></div>
+              <div id="product-builder" class="foundation-builder">
+                <div class="foundation-card foundation-card-placeholder">
+                  <div class="foundation-card-label">P</div>
+                  <div class="support-copy">Cargando opciones...</div>
+                </div>
+              </div>
               <div id="product-note" class="support-copy top-gap-sm"></div>
               <div id="product-helper" class="foundation-preview top-gap-sm">No seleccionado</div>
             </section>
@@ -107,7 +117,9 @@
                   <span id="methodology-records-label">Registros de uso metodológico</span>
                   <div class="code-preview-card">
                     <div id="methodology-records-note" class="support-copy"></div>
-                    <div id="methodology-records-list" class="methodology-records-list top-gap-sm"></div>
+                    <div id="methodology-records-list" class="methodology-records-list top-gap-sm">
+                      <div class="support-copy">Cargando registros...</div>
+                    </div>
                     <div class="button-stack top-gap-sm">
                       <button id="add-methodology-record-button" class="secondary-button" type="button">Añadir registro metodológico</button>
                     </div>
@@ -125,8 +137,8 @@
                 <label class="span-all">
                   <span id="recipe-entry-inline-label">Registro de receta</span>
                   <div class="code-preview-card">
-                    <div id="recipe-status" class="support-copy"></div>
-                    <div id="recipe-summary" class="code-preview-value"></div>
+                    <div id="recipe-status" class="support-copy">Cargando receta...</div>
+                    <div id="recipe-summary" class="code-preview-value">Sin datos todavía.</div>
                     <div class="button-stack top-gap-sm">
                       <button id="open-recipe-button" class="secondary-button" type="button">Abrir registro de receta</button>
                       <button id="delete-recipe-button" class="secondary-button" type="button">Eliminar receta</button>

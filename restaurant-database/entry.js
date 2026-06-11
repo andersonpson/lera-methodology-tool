@@ -224,7 +224,15 @@ bindEvents();
 init();
 
 async function init() {
+  renderLanguage();
+  renderMethodologyRecords();
+  renderRecipeStatus();
+  renderCodePreview();
   applyEntryContext();
+  renderLanguage();
+  renderMethodologyRecords();
+  renderRecipeStatus();
+  renderCodePreview();
   const [dishes, codebook, methodologyProjects] = await Promise.all([
     fetchDishes(),
     fetchCodebook(),
@@ -743,8 +751,8 @@ function renderRecipeStatus() {
   const openButton = document.getElementById("open-recipe-button");
   const deleteButton = document.getElementById("delete-recipe-button");
   if (!state.recipe) {
-    recipeStatus.textContent = t("recipeStatusEmpty");
-    recipeSummary.textContent = t("recipeSummaryEmpty");
+    recipeStatus.textContent = t("recipeStatusEmpty") || " ";
+    recipeSummary.textContent = t("recipeSummaryEmpty") || "Sin datos todavía.";
     openButton.textContent = t("recipeOpenButton");
     deleteButton.disabled = true;
     return;
