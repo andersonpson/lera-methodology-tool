@@ -2,20 +2,10 @@ const LANGUAGE_STORAGE_KEY = "lera-ui-language";
 const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const state = {
   dish: null,
@@ -145,10 +135,6 @@ async function init() {
 }
 
 function bindEvents() {
-  ["language-toggle", "topbar-language-toggle"].forEach((id) => {
-    const element = document.getElementById(id);
-    if (element) element.addEventListener("click", toggleLanguage);
-  });
   document.getElementById("back-button").addEventListener("click", () => window.history.back());
   document.getElementById("print-dish-button").addEventListener("click", async () => {
     document.title = getDishDetailWindowTitle();
@@ -164,13 +150,6 @@ function bindEvents() {
     }
   });
   document.getElementById("delete-dish-button").addEventListener("click", deleteDish);
-}
-
-function toggleLanguage() {
-  state.currentLang = state.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(state.currentLang);
-  renderLanguage();
-  render();
 }
 
 async function fetchDish(code) {
@@ -214,7 +193,6 @@ function renderLanguage() {
   setText("notes-title", copy.notesTitle);
   setText("allergens-title", copy.allergensTitle);
   setText("methodology-records-title", copy.methodologyRecordsTitle);
-  setText("topbar-language-toggle", "中 / Es");
 }
 
 function render() {
@@ -228,6 +206,7 @@ function render() {
   renderPhoto();
   renderModules();
   renderSideInfo();
+  document.body.style.visibility = "visible";
 }
 
 function getDishDetailWindowTitle() {

@@ -3,20 +3,10 @@ const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 const STAGE_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const reportParams = new URLSearchParams(window.location.search);
 const projectCode = reportParams.get("projectCode") || "";
@@ -453,7 +443,6 @@ const i18n = {
   }
 };
 
-document.getElementById("topbar-language-toggle").addEventListener("click", toggleLanguage);
 document.getElementById("back-button").addEventListener("click", () => window.history.back());
 document.getElementById("print-report-button").addEventListener("click", async () => {
   try {
@@ -513,18 +502,6 @@ function t(key) {
   return i18n[reportState.currentLang][key];
 }
 
-function toggleLanguage() {
-  reportState.currentLang = reportState.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(reportState.currentLang);
-  renderLanguage();
-  if (!reportState.item) return;
-  renderMethodologyMeta(reportState.item);
-  renderPrintHeader(reportState.item);
-  renderMethodologyContent(reportState.item.payload_json?.state || {});
-  renderHistorySections(getChangeLog(reportState.item.payload_json));
-  scrollToRequestedTarget();
-}
-
 function getChangeLog(payload) {
   if (!payload || typeof payload !== "object") return [];
   if (Array.isArray(payload.changeLog)) return payload.changeLog;
@@ -554,8 +531,8 @@ function renderLanguage() {
   setText("changes-title", t("changesTitle"));
   setText("tools-eyebrow", t("toolsEyebrow"));
   setText("tools-title", t("toolsTitle"));
-  setText("topbar-language-toggle", "中 / Es");
   document.getElementById("methodology-report-empty").textContent = t("empty");
+  document.body.style.visibility = "visible";
 }
 
 function getMethodologyReportWindowTitle() {

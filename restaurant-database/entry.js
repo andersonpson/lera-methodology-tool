@@ -2,20 +2,10 @@ const LANGUAGE_STORAGE_KEY = "lera-ui-language";
 const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const state = {
   dishes: [],
@@ -291,10 +281,6 @@ function populateMonthOptions() {
 }
 
 function bindEvents() {
-  ["language-toggle", "topbar-language-toggle"].forEach((id) => {
-    const element = document.getElementById(id);
-    if (element) element.addEventListener("click", toggleLanguage);
-  });
   ["year-code", "season-code", "month-no", "seq-no"].forEach((id) => {
     document.getElementById(id).addEventListener("input", renderCodePreview);
     document.getElementById(id).addEventListener("change", renderCodePreview);
@@ -312,14 +298,6 @@ function bindEvents() {
   document.getElementById("delete-recipe-button").addEventListener("click", deleteRecipe);
   window.addEventListener("message", handleRecipeWindowMessage);
   window.addEventListener("storage", handleRecipeStorageMessage);
-}
-
-function toggleLanguage() {
-  state.currentLang = state.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(state.currentLang);
-  renderLanguage();
-  populateCodebookFields();
-  render();
 }
 
 async function fetchDishes() {
@@ -985,8 +963,6 @@ function renderLanguage() {
   setText("back-detail-link", copy.backButton);
   setText("save-dish-button", isLooseRecipe ? copy.saveLooseRecipe : (state.editMode ? copy.saveDishEdit : copy.saveDish));
   setText("reset-form-button", copy.resetForm);
-  setText("language-toggle", "中 / Es");
-  setText("topbar-language-toggle", "中 / Es");
   const backLink = document.getElementById("back-detail-link");
   backLink.hidden = !state.editMode;
   backLink.href = state.originalDishCode
@@ -998,6 +974,7 @@ function renderLanguage() {
   document.getElementById("methodology-version-code").placeholder = copy.methodologyVersionPlaceholder;
   document.getElementById("dish-name").placeholder = isLooseRecipe ? copy.looseRecipeNamePlaceholder : copy.dishNamePlaceholder;
   document.getElementById("notes").placeholder = copy.notesPlaceholder;
+  document.body.style.visibility = "visible";
 }
 
 function updateWindowTitle() {

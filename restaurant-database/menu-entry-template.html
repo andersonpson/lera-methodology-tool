@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -210,7 +210,7 @@
       }
     </style>
   </head>
-  <body>
+  <body style="visibility: hidden">
     <div class="app-shell database-shell">
       <main class="workspace">
         <section class="print-header" aria-hidden="true">
@@ -240,7 +240,6 @@
             <button id="print-recipe-button" class="secondary-button" type="button">打印</button>
             <button id="save-recipe-button" class="secondary-button" type="button">保存</button>
             <button id="leave-recipe-button" class="secondary-button" type="button">离开</button>
-            <button id="topbar-language-toggle" class="lang-toggle" type="button">中 / Es</button>
           </div>
         </header>
 
@@ -348,20 +347,10 @@
       const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
       function getInitialLanguage() {
-        try {
-          const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-          return stored === "zh" ? "zh" : "es";
-        } catch {
-          return "es";
-        }
+        return "es";
       }
 
-      function persistLanguage(lang) {
-        try {
-          localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-          localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-        } catch {}
-      }
+      function persistLanguage() {}
 
       const i18n = {
         zh: {
@@ -548,10 +537,6 @@
       }
 
       function bindEvents() {
-        ["language-toggle", "topbar-language-toggle"].forEach((id) => {
-          const element = document.getElementById(id);
-          if (element) element.addEventListener("click", toggleLanguage);
-        });
         document.getElementById("add-module-button").addEventListener("click", addModule);
         document.getElementById("back-button").addEventListener("click", handleBackButton);
         document.getElementById("photo-button").addEventListener("click", () => {
@@ -704,14 +689,6 @@
         preview.hidden = false;
       }
 
-      function toggleLanguage() {
-        currentLang = currentLang === "zh" ? "es" : "zh";
-        persistLanguage(currentLang);
-        renderLanguage();
-        renderModules();
-        createAllergenGrid();
-      }
-
       function renderLanguage() {
         const t = i18n[currentLang];
         const standalone = state.mode === "standalone_recipe";
@@ -749,16 +726,13 @@
         document.getElementById("photo-copy").textContent = t.photoCopy;
         document.getElementById("photo-button").textContent = t.photoButton;
         document.getElementById("allergens-title").textContent = t.allergensTitle;
-        const languageToggle = document.getElementById("language-toggle");
-        const topbarLanguageToggle = document.getElementById("topbar-language-toggle");
-        if (languageToggle) languageToggle.textContent = t.langToggle;
-        if (topbarLanguageToggle) topbarLanguageToggle.textContent = t.langToggle;
         document.getElementById("back-button").textContent = t.backButton;
         document.getElementById("home-link").textContent = t.homeLink;
         document.getElementById("print-recipe-button").textContent = t.printButton;
         document.getElementById("save-recipe-button").textContent = t.saveReturn;
         document.getElementById("leave-recipe-button").textContent = t.leaveButton;
         syncPrintableDishMeta();
+        document.body.style.visibility = "visible";
       }
 
       function syncPrintableDishMeta() {

@@ -3,20 +3,10 @@ const LEGACY_HOME_LANGUAGE_KEY = "restaurant-database-language";
 const desktopBridge = window.leraDesktop || null;
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(HOME_LANGUAGE_KEY) || localStorage.getItem(LEGACY_HOME_LANGUAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(HOME_LANGUAGE_KEY, lang);
-    localStorage.setItem(LEGACY_HOME_LANGUAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const elements = {
   backupFileInput: document.getElementById("backup-file-input"),
@@ -234,7 +224,6 @@ const i18n = {
   }
 };
 
-document.getElementById("home-language-toggle")?.addEventListener("click", toggleLanguage);
 elements.createBackupButton?.addEventListener("click", createBackupSnapshot);
 elements.downloadSelectedBackupButton?.addEventListener("click", downloadSelectedSnapshot);
 elements.downloadJsonBackupButton?.addEventListener("click", downloadJsonBackup);
@@ -248,12 +237,6 @@ elements.backupList?.addEventListener("click", handleSnapshotListClick);
 
 render();
 void loadBackupSnapshots();
-
-function toggleLanguage() {
-  state.currentLang = state.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(state.currentLang);
-  render();
-}
 
 function render() {
   const copy = getCopy();
@@ -292,8 +275,6 @@ function render() {
   setText("catalog-card-link", copy.open);
   setText("methodology-list-link", copy.open);
   setText("codebook-card-link", copy.open);
-  setText("home-language-toggle", "中 / Es");
-
   renderBackupPanel();
 }
 
@@ -358,6 +339,7 @@ function renderBackupPanel() {
   setText("backup-restore-note", noteText);
 
   renderBackupList();
+  document.body.style.visibility = "visible";
 }
 
 function renderBackupList() {

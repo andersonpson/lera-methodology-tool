@@ -19,7 +19,7 @@ const defaultState = {
     activeProductBasis: "PA1",
     nextAction: "方法论记录已完成，可进入菜品归档与菜谱录入。",
     currentVersion: "2026-001-a",
-    language: "zh"
+    language: "es"
   },
   stages: {
     A: {
@@ -254,7 +254,7 @@ function stripTemplateValue(value) {
   return "";
 }
 
-function createFreshState(language = "zh") {
+function createFreshState(language = "es") {
   const emptyStages = stripTemplateValue(defaultState.stages);
   return {
     meta: {
@@ -279,20 +279,10 @@ function createFreshState(language = "zh") {
 }
 
 function getPersistedUiLanguage() {
-  try {
-    const stored = localStorage.getItem(UI_LANGUAGE_KEY) || localStorage.getItem(LEGACY_UI_LANGUAGE_KEY);
-    return stored === "zh" ? "zh" : stored === "es" ? "es" : "zh";
-  } catch {
-    return "zh";
-  }
+  return "es";
 }
 
-function persistUiLanguage(language) {
-  try {
-    localStorage.setItem(UI_LANGUAGE_KEY, language);
-    localStorage.setItem(LEGACY_UI_LANGUAGE_KEY, language);
-  } catch {}
-}
+function persistUiLanguage() {}
 
 const i18n = {
   zh: {
@@ -1125,7 +1115,7 @@ const i18n = {
 
 let state = loadState();
 let currentStageId = state.meta.currentStage || "A";
-let currentLang = state.meta.language || getPersistedUiLanguage() || "zh";
+let currentLang = "es";
 let saveFileHandle = null;
 let autoSaveTimer = null;
 let autoSaveInFlight = false;
@@ -1204,10 +1194,6 @@ function setupActions() {
   document.getElementById("apply-attribute-output").addEventListener("click", applyAttributeOutputToStageC);
   document.getElementById("attribute-add-row").addEventListener("click", addAttributeRow);
   document.getElementById("attribute-add-combination").addEventListener("click", addCombinationRow);
-  document.getElementById("language-toggle").addEventListener("click", toggleLanguage);
-  document.getElementById("rollback-language-toggle").addEventListener("click", toggleLanguage);
-  document.getElementById("review-language-toggle").addEventListener("click", toggleLanguage);
-  document.getElementById("attribute-language-toggle").addEventListener("click", toggleLanguage);
   document.getElementById("close-saved-records").addEventListener("click", () => savedRecordsDialogEl.close());
   skipStageButtonEl.addEventListener("click", skipCurrentStage);
 
@@ -1386,6 +1372,7 @@ function render() {
   renderLatestChange();
   renderRollbackBanner();
   saveState();
+  document.body.style.visibility = "visible";
 }
 
 function applyStaticTranslations() {
@@ -1442,10 +1429,6 @@ function applyStaticTranslations() {
   setText("close-attribute", t("closeAttribute"));
   setText("apply-attribute-output", t("applyAttributeOutput"));
   setText("stage-guidance", t("stageGuidance"));
-  ["language-toggle", "rollback-language-toggle", "review-language-toggle", "attribute-language-toggle"].forEach((id) => {
-    setText(id, "中 / Es");
-    document.getElementById(id).dataset.activeLang = currentLang;
-  });
   setText("skip-stage-button", t("skip"));
   setLabelAndPlaceholder("project-origin", t("projectOrigin"), "");
   setLabelAndPlaceholder("dish-name", t("dishName"), t("dishNamePlaceholder"));
@@ -3216,18 +3199,6 @@ function handleRollbackSubmit(event) {
   render();
 }
 
-function toggleLanguage() {
-  currentLang = currentLang === "zh" ? "es" : "zh";
-  state.meta.language = currentLang;
-  render();
-  if (reviewDialogEl.open) {
-    renderReviewContent();
-  }
-  if (attributeDialogEl.open) {
-    renderAttributeDialog();
-  }
-}
-
 async function resetPrototype() {
   localStorage.removeItem(STORAGE_KEY);
   saveFileHandle = null;
@@ -4189,14 +4160,15 @@ function loadImportedState(payload, options = {}) {
   state = mergeWithDefaults(incomingState);
   state.meta.editingProjectCode = String(options.editingProjectCode || state.meta.editingProjectCode || state.meta.projectCode || "").trim();
   state.meta.editingVersionCode = String(options.editingVersionCode || state.meta.editingVersionCode || state.meta.currentVersion || state.meta.projectCode || "").trim();
+  state.meta.language = "es";
   currentStageId = state.meta?.currentStage || "A";
-  currentLang = state.meta?.language || "zh";
+  currentLang = "es";
   saveState();
   render();
 }
 
 function mergeWithDefaults(incomingState) {
-  const emptyState = createFreshState(incomingState?.meta?.language || getPersistedUiLanguage() || "zh");
+  const emptyState = createFreshState("es");
   const merged = {
     ...emptyState,
     ...incomingState,
@@ -4219,6 +4191,7 @@ function mergeWithDefaults(incomingState) {
   if (!merged.meta.editingVersionCode) {
     merged.meta.editingVersionCode = "";
   }
+  merged.meta.language = "es";
   return merged;
 }
 

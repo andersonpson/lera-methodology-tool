@@ -2,20 +2,10 @@ const LANGUAGE_STORAGE_KEY = "lera-ui-language";
 const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const i18n = {
   zh: {
@@ -167,10 +157,6 @@ async function fetchCodebook() {
 }
 
 function bindEvents() {
-  ["language-toggle", "topbar-language-toggle"].forEach((id) => {
-    const element = document.getElementById(id);
-    if (element) element.addEventListener("click", toggleLanguage);
-  });
   document.getElementById("back-button").addEventListener("click", () => window.history.back());
 
   document.getElementById("save-code-button").addEventListener("click", saveCode);
@@ -180,13 +166,6 @@ function bindEvents() {
     document.getElementById(id).addEventListener("input", render);
     document.getElementById(id).addEventListener("change", render);
   });
-}
-
-function toggleLanguage() {
-  currentLang = currentLang === "zh" ? "es" : "zh";
-  persistLanguage(currentLang);
-  renderLanguage();
-  render();
 }
 
 function renderLanguage() {
@@ -225,10 +204,6 @@ function renderLanguage() {
   document.getElementById("th-status").textContent = t.thStatus;
   document.getElementById("th-notes").textContent = t.thNotes;
   document.getElementById("th-actions").textContent = t.thActions;
-  const languageToggle = document.getElementById("language-toggle");
-  const topbarLanguageToggle = document.getElementById("topbar-language-toggle");
-  if (languageToggle) languageToggle.textContent = "中 / Es";
-  if (topbarLanguageToggle) topbarLanguageToggle.textContent = "中 / Es";
 
   document.getElementById("code-value").placeholder = t.placeholderCode;
   document.getElementById("parent-code").placeholder = t.placeholderParent;
@@ -255,6 +230,7 @@ function renderLanguage() {
     { value: "active", label: t.active },
     { value: "inactive", label: t.inactive }
   ]);
+  document.body.style.visibility = "visible";
 }
 
 function setSelectOptions(id, options) {

@@ -2,20 +2,10 @@ const LANGUAGE_STORAGE_KEY = "lera-ui-language";
 const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const state = {
   dishes: [],
@@ -155,19 +145,10 @@ function bindEvents() {
   document.getElementById("view-dishes-button").addEventListener("click", () => switchView("dishes"));
   document.getElementById("view-subproducts-button").addEventListener("click", () => switchView("subproducts"));
   document.getElementById("back-button").addEventListener("click", () => window.history.back());
-  document.getElementById("topbar-language-toggle").addEventListener("click", toggleLanguage);
 }
 
 function t(key) {
   return i18n[state.currentLang][key];
-}
-
-function toggleLanguage() {
-  state.currentLang = state.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(state.currentLang);
-  renderLanguage();
-  renderFilterBuilders();
-  render();
 }
 
 function renderLanguage() {
@@ -193,11 +174,11 @@ function renderLanguage() {
   setText("product-filter-label", t("productFilterLabel"));
   setText("season-filter-label", t("seasonFilterLabel"));
   setText("month-filter-label", t("monthFilterLabel"));
-  setText("topbar-language-toggle", "中 / Es");
   document.getElementById("search-input").placeholder = t("searchPlaceholder");
   renderSeasonOptions();
   document.getElementById("catalog-section-title").textContent =
     state.currentView === "dishes" ? t("sectionTitleDishes") : t("sectionTitleSubproducts");
+  document.body.style.visibility = "visible";
 }
 
 async function fetchDishes() {

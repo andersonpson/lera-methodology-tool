@@ -2,20 +2,10 @@ const LANGUAGE_STORAGE_KEY = "lera-ui-language";
 const LEGACY_LANGUAGE_STORAGE_KEY = "restaurant-database-language";
 
 function getInitialLanguage() {
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) || localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
-    return stored === "zh" ? "zh" : "es";
-  } catch {
-    return "es";
-  }
+  return "es";
 }
 
-function persistLanguage(lang) {
-  try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, lang);
-  } catch {}
-}
+function persistLanguage() {}
 
 const methodologyState = {
   items: [],
@@ -95,8 +85,6 @@ const methodologyEmptyEl = document.getElementById("methodology-empty");
 
 document.getElementById("methodology-search-input").addEventListener("input", renderMethodologyList);
 document.getElementById("back-button").addEventListener("click", () => window.history.back());
-document.getElementById("topbar-language-toggle").addEventListener("click", toggleLanguage);
-
 initMethodologyList();
 
 async function initMethodologyList() {
@@ -109,13 +97,6 @@ async function initMethodologyList() {
 
 function t(key) {
   return i18n[methodologyState.currentLang][key];
-}
-
-function toggleLanguage() {
-  methodologyState.currentLang = methodologyState.currentLang === "zh" ? "es" : "zh";
-  persistLanguage(methodologyState.currentLang);
-  renderLanguage();
-  renderMethodologyList();
 }
 
 function renderLanguage() {
@@ -134,9 +115,9 @@ function renderLanguage() {
   setText("section-eyebrow", t("sectionEyebrow"));
   setText("section-title", t("sectionTitle"));
   setText("search-label", t("searchLabel"));
-  setText("topbar-language-toggle", "中 / Es");
   document.getElementById("methodology-search-input").placeholder = t("searchPlaceholder");
   methodologyEmptyEl.textContent = t("empty");
+  document.body.style.visibility = "visible";
 }
 
 async function fetchMethodologyList() {
