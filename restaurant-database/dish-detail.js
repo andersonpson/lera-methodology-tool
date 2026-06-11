@@ -206,7 +206,6 @@ function render() {
   renderPhoto();
   renderModules();
   renderSideInfo();
-  document.body.style.visibility = "visible";
 }
 
 function getDishDetailWindowTitle() {

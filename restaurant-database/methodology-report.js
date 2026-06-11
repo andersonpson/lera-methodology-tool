@@ -532,7 +532,6 @@ function renderLanguage() {
   setText("tools-eyebrow", t("toolsEyebrow"));
   setText("tools-title", t("toolsTitle"));
   document.getElementById("methodology-report-empty").textContent = t("empty");
-  document.body.style.visibility = "visible";
 }
 
 function getMethodologyReportWindowTitle() {

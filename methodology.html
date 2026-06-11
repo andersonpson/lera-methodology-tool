@@ -3,30 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>html{visibility:hidden;}</style>
-    <title>Lera 方法论工具</title>
+    <title>Lera · Metodología</title>
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body style="visibility: hidden">
+  <body>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand-block">
           <div class="brand-row">
           <div>
-            <p id="brand-eyebrow" class="eyebrow">Lera 方法论</p>
-            <h1 id="brand-title">菜品流程原型</h1>
+            <p id="brand-eyebrow" class="eyebrow">Metodología Lera</p>
+            <h1 id="brand-title">Flujo del plato</h1>
           </div>
         </div>
           <p id="brand-copy" class="brand-copy"></p>
         </div>
 
         <section class="sidebar-card">
-          <h2 id="main-flow-title">主流程</h2>
+          <h2 id="main-flow-title">Flujo principal</h2>
           <div id="stage-list" class="stage-list"></div>
         </section>
 
         <section class="sidebar-card compact">
-          <h2 id="version-title">方法论记录</h2>
+          <h2 id="version-title">Registro metodológico</h2>
           <p id="version-indicator">2026-001</p>
         </section>
       </aside>
@@ -34,65 +33,65 @@
       <main class="workspace">
         <header class="topbar">
           <div class="topbar-copy">
-            <p id="dashboard-eyebrow" class="eyebrow">项目总览</p>
-            <h2 id="dashboard-title">未命名菜品</h2>
-            <p id="save-status-text" class="support-copy save-status">未保存</p>
+            <p id="dashboard-eyebrow" class="eyebrow">Resumen del proyecto</p>
+            <h2 id="dashboard-title">Plato sin nombre</h2>
+            <p id="save-status-text" class="support-copy save-status">Sin guardar</p>
           </div>
           <div class="topbar-actions">
-            <a id="home-link" href="./index.html" class="secondary-button nav-link">主页</a>
-            <button id="save-button" type="button">保存到数据库</button>
-            <button id="open-button" class="secondary-button" type="button">读取</button>
-            <button id="save-pdf-button" class="secondary-button" type="button">保存 PDF</button>
-            <button id="export-results-button" class="secondary-button" type="button">下载所有结果</button>
-            <button id="restart-button" class="secondary-button" type="button">重新开始</button>
+            <a id="home-link" href="./index.html" class="secondary-button nav-link">Inicio</a>
+            <button id="save-button" type="button">Guardar</button>
+            <button id="open-button" class="secondary-button" type="button">Abrir</button>
+            <button id="save-pdf-button" class="secondary-button" type="button">Guardar PDF</button>
+            <button id="export-results-button" class="secondary-button" type="button">Descargar resultados</button>
+            <button id="restart-button" class="secondary-button" type="button">Reiniciar</button>
           </div>
         </header>
 
         <section class="dashboard-grid">
           <article class="dashboard-card">
-            <h3 id="snapshot-title">项目快照</h3>
+            <h3 id="snapshot-title">Resumen del proyecto</h3>
             <div class="dashboard-fields">
               <label>
-                项目类型
+                Tipo de proyecto
                 <select id="project-origin" name="projectOrigin"></select>
               </label>
               <label>
-                菜品名称
-                <input id="dish-name" name="dishName" type="text" placeholder="菜品暂定名" />
+                Nombre del plato
+                <input id="dish-name" name="dishName" type="text" placeholder="Nombre provisional" />
               </label>
               <label>
-                项目编码
+                Código de proyecto
                 <input id="project-code" name="projectCode" type="text" placeholder="2026-001" />
               </label>
               <label id="source-dish-code-wrapper" class="hidden">
-                原菜肴编码
-                <input id="source-dish-code" name="sourceDishCode" type="text" placeholder="原始成品菜编码" />
+                Código del plato original
+                <input id="source-dish-code" name="sourceDishCode" type="text" placeholder="Código del plato original" />
               </label>
               <label id="source-methodology-code-wrapper" class="hidden">
-                原方法论主编码
-                <input id="source-methodology-code" name="sourceMethodologyCode" type="text" placeholder="对应旧方法论主编码" />
+                Código metodológico principal original
+                <input id="source-methodology-code" name="sourceMethodologyCode" type="text" placeholder="Código metodológico principal original" />
               </label>
               <label>
-                当前阶段
+                Etapa actual
                 <input id="current-stage-display" type="text" readonly />
               </label>
               <label>
-                当前状态
+                Estado actual
                 <select id="current-status" name="currentStatus"></select>
               </label>
               <label>
-                当前激活的创意基础
+                Fundamento creativo activo
                 <input id="active-creative-basis" name="activeCreativeBasis" type="text" placeholder="FT3 / FP2 / FA3..." readonly />
               </label>
               <label>
-                下一步动作
+                Siguiente paso
                 <input id="next-action" name="nextAction" type="text" readonly />
               </label>
             </div>
           </article>
 
           <article class="dashboard-card">
-            <h3 id="latest-change-title">修改记录</h3>
+            <h3 id="latest-change-title">Registro de cambios</h3>
             <div id="latest-change" class="change-log-list empty-state"></div>
           </article>
         </section>
@@ -101,15 +100,15 @@
           <article class="main-panel">
             <div class="panel-header">
               <div class="panel-head-copy">
-                <p id="stage-workspace-eyebrow" class="eyebrow">阶段工作台</p>
-                <h3 id="stage-title">A 阶段</h3>
+                <p id="stage-workspace-eyebrow" class="eyebrow">Espacio de trabajo</p>
+                <h3 id="stage-title">Etapa A</h3>
               </div>
               <div class="panel-actions">
-                <button id="skip-stage-button" class="ghost-button" type="button" hidden>暂时跳过</button>
-                <button id="previous-stage-button" class="secondary-button" type="button" hidden>上一页</button>
-                <button id="review-button" class="secondary-button" type="button">回顾</button>
-                <button id="stage-rollback-button" class="warning-button" type="button">正式回退</button>
-                <button id="next-stage-button" type="button">下一阶段</button>
+                <button id="skip-stage-button" class="ghost-button" type="button" hidden>Saltar</button>
+                <button id="previous-stage-button" class="secondary-button" type="button" hidden>Anterior</button>
+                <button id="review-button" class="secondary-button" type="button">Revisión</button>
+                <button id="stage-rollback-button" class="warning-button" type="button">Rollback formal</button>
+                <button id="next-stage-button" type="button">Siguiente</button>
               </div>
             </div>
             <p id="stage-guidance" class="support-copy"></p>
@@ -119,7 +118,7 @@
 
           <aside class="side-panel">
             <section id="methodology-panel" class="dashboard-card" hidden>
-              <h3 id="methodology-panel-title">方法论参考</h3>
+              <h3 id="methodology-panel-title">Referencia metodológica</h3>
               <div id="methodology-panel-content"></div>
             </section>
 

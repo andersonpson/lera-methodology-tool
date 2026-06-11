@@ -178,7 +178,6 @@ function renderLanguage() {
   renderSeasonOptions();
   document.getElementById("catalog-section-title").textContent =
     state.currentView === "dishes" ? t("sectionTitleDishes") : t("sectionTitleSubproducts");
-  document.body.style.visibility = "visible";
 }
 
 async function fetchDishes() {

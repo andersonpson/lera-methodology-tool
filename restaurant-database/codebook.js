@@ -230,7 +230,6 @@ function renderLanguage() {
     { value: "active", label: t.active },
     { value: "inactive", label: t.inactive }
   ]);
-  document.body.style.visibility = "visible";
 }
 
 function setSelectOptions(id, options) {

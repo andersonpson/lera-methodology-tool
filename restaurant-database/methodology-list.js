@@ -117,7 +117,6 @@ function renderLanguage() {
   setText("search-label", t("searchLabel"));
   document.getElementById("methodology-search-input").placeholder = t("searchPlaceholder");
   methodologyEmptyEl.textContent = t("empty");
-  document.body.style.visibility = "visible";
 }
 
 async function fetchMethodologyList() {

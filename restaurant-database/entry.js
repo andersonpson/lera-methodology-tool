@@ -974,7 +974,6 @@ function renderLanguage() {
   document.getElementById("methodology-version-code").placeholder = copy.methodologyVersionPlaceholder;
   document.getElementById("dish-name").placeholder = isLooseRecipe ? copy.looseRecipeNamePlaceholder : copy.dishNamePlaceholder;
   document.getElementById("notes").placeholder = copy.notesPlaceholder;
-  document.body.style.visibility = "visible";
 }
 
 function updateWindowTitle() {

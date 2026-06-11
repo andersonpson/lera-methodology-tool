@@ -339,7 +339,6 @@ function renderBackupPanel() {
   setText("backup-restore-note", noteText);
 
   renderBackupList();
-  document.body.style.visibility = "visible";
 }
 
 function renderBackupList() {

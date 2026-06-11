@@ -1372,7 +1372,6 @@ function render() {
   renderLatestChange();
   renderRollbackBanner();
   saveState();
-  document.body.style.visibility = "visible";
 }
 
 function applyStaticTranslations() {
