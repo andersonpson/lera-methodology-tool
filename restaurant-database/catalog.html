@@ -28,14 +28,14 @@
 
         <section class="dashboard-grid">
           <article class="dashboard-card">
-            <h3 id="snapshot-title">数据库快照</h3>
+            <h3 id="snapshot-title">Resumen de la base de datos</h3>
             <div class="metrics-grid">
               <div class="metric-card">
-                <span id="total-count-label" class="support-copy">当前菜品数</span>
+                <span id="total-count-label" class="support-copy">Número de platos</span>
                 <strong id="total-count">0</strong>
               </div>
               <div class="metric-card">
-                <span id="filtered-count-label" class="support-copy">当前检索结果</span>
+                <span id="filtered-count-label" class="support-copy">Resultados filtrados</span>
                 <strong id="filtered-count">0</strong>
               </div>
             </div>
@@ -45,32 +45,32 @@
         <section class="main-panel">
           <div class="panel-header">
             <div>
-              <p id="catalog-eyebrow" class="eyebrow">访问与检索</p>
-              <h3 id="catalog-section-title">菜品目录</h3>
+              <p id="catalog-eyebrow" class="eyebrow">Consulta</p>
+              <h3 id="catalog-section-title">Catálogo de platos</h3>
             </div>
             <div class="table-actions">
-              <button id="view-dishes-button" class="secondary-button mini-button" type="button">主菜数据库</button>
-              <button id="view-subproducts-button" class="secondary-button mini-button" type="button">副产品数据库</button>
+              <button id="view-dishes-button" class="secondary-button mini-button" type="button">Base de platos</button>
+              <button id="view-subproducts-button" class="secondary-button mini-button" type="button">Base de subproductos</button>
             </div>
           </div>
 
           <div class="catalog-toolbar">
             <label>
-              <span id="search-label">搜索名称 / 编码</span>
+              <span id="search-label">Buscar por nombre / código</span>
               <input id="search-input" type="text" placeholder="" />
             </label>
             <label>
-              <span id="foundation-filter-label">F 检索</span>
+              <span id="foundation-filter-label">Filtro F</span>
               <div id="filter-foundation-builder" class="foundation-builder"></div>
             </label>
             <label>
-              <span id="product-filter-label">P 检索</span>
+              <span id="product-filter-label">Filtro P</span>
               <div id="filter-product-builder" class="foundation-builder"></div>
             </label>
             <label>
-              <span id="season-filter-label">季节</span>
+              <span id="season-filter-label">Estación</span>
               <select id="filter-season">
-                <option value="">全部</option>
+                <option value="">Todas</option>
                 <option value="P">Primavera</option>
                 <option value="V">Verano</option>
                 <option value="O">Otoño</option>
@@ -78,9 +78,9 @@
               </select>
             </label>
             <label>
-              <span id="month-filter-label">月份</span>
+              <span id="month-filter-label">Mes</span>
               <select id="filter-month">
-                <option value="">全部</option>
+                <option value="">Todos</option>
               </select>
             </label>
           </div>
@@ -88,7 +88,7 @@
           <div class="catalog-list-wrap">
             <div id="catalog-body" class="catalog-list"></div>
           </div>
-          <div id="catalog-empty" class="empty-state">暂无菜品</div>
+          <div id="catalog-empty" class="empty-state">Todavía no hay platos.</div>
         </section>
       </main>
     </div>

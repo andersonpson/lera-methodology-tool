@@ -131,40 +131,40 @@
       <form id="rollback-form" method="dialog" class="rollback-form">
         <div class="dialog-head">
           <div class="dialog-head-copy">
-            <p id="rollback-event-eyebrow" class="eyebrow">回退事件</p>
-            <h3 id="rollback-dialog-title">创建一条正式回退记录</h3>
+            <p id="rollback-event-eyebrow" class="eyebrow">Evento de rollback</p>
+            <h3 id="rollback-dialog-title">Crear registro formal de rollback</h3>
           </div>
         </div>
         <p id="rollback-dialog-copy" class="support-copy"></p>
 
         <label>
-          回退目标阶段
+          Etapa de destino
           <select id="rollback-target" name="rollbackTarget"></select>
         </label>
 
         <label>
-          修改原因
-          <input id="rollback-reason" name="reasonForChange" type="text" placeholder="为什么要回退？" required />
+          Motivo del cambio
+          <input id="rollback-reason" name="reasonForChange" type="text" placeholder="¿Por qué hace falta volver atrás?" required />
         </label>
 
         <label>
-          修改说明
-          <textarea id="rollback-description" name="descriptionOfChange" rows="4" placeholder="需要修正什么？"></textarea>
+          Descripción del ajuste
+          <textarea id="rollback-description" name="descriptionOfChange" rows="4" placeholder="¿Qué hace falta corregir?"></textarea>
         </label>
 
         <label>
-          受影响元素
-          <input id="rollback-elements" name="affectedElements" type="text" placeholder="主角元素、液体元素……" />
+          Elementos afectados
+          <input id="rollback-elements" name="affectedElements" type="text" placeholder="Elemento principal, elemento líquido..." />
         </label>
 
         <label>
-          受影响技法
-          <input id="rollback-techniques" name="affectedTechniques" type="text" placeholder="烘烤、腌制、浸泡……" />
+          Técnicas afectadas
+          <input id="rollback-techniques" name="affectedTechniques" type="text" placeholder="Horneado, curado, maceración..." />
         </label>
 
         <div class="dialog-actions">
-          <button id="cancel-rollback" class="ghost-button" type="button">取消</button>
-          <button id="confirm-rollback" type="submit">创建回退</button>
+          <button id="cancel-rollback" class="ghost-button" type="button">Cancelar</button>
+          <button id="confirm-rollback" type="submit">Crear rollback</button>
         </div>
       </form>
     </dialog>
@@ -173,14 +173,14 @@
       <div class="rollback-form review-shell">
         <div class="dialog-head">
           <div class="dialog-head-copy">
-            <p id="review-eyebrow" class="eyebrow">阶段回顾</p>
-            <h3 id="review-dialog-title">回顾 C / D / E 阶段</h3>
+            <p id="review-eyebrow" class="eyebrow">Revisión de etapas</p>
+            <h3 id="review-dialog-title">Revisar etapas C / D / E</h3>
           </div>
         </div>
         <p id="review-dialog-copy" class="support-copy"></p>
         <div id="review-content" class="review-content"></div>
         <div class="dialog-actions">
-          <button id="close-review" class="ghost-button" type="button">关闭</button>
+          <button id="close-review" class="ghost-button" type="button">Cerrar</button>
         </div>
       </div>
     </dialog>
@@ -189,11 +189,11 @@
       <div class="attribute-shell">
         <div class="attribute-topbar">
           <div class="attribute-topbar-copy">
-            <p id="attribute-eyebrow" class="eyebrow">属性原料分支</p>
-            <h3 id="attribute-dialog-title">属性分支</h3>
+            <p id="attribute-eyebrow" class="eyebrow">Ruta por atributos</p>
+            <h3 id="attribute-dialog-title">Interfaz por atributos</h3>
           </div>
           <div class="dialog-actions">
-            <button id="close-attribute" class="ghost-button" type="button">关闭</button>
+            <button id="close-attribute" class="ghost-button" type="button">Cerrar</button>
           </div>
         </div>
 
@@ -202,64 +202,64 @@
         <form id="attribute-form" class="attribute-form">
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-stage-1-title">I. 目标属性定义</h4>
+              <h4 id="attribute-stage-1-title">I. Definición del atributo objetivo</h4>
             </div>
             <label>
-              <span id="attribute-target-type-label">目标结果类型</span>
+              <span id="attribute-target-type-label">Tipo de resultado objetivo</span>
               <div id="attribute-target-types"></div>
             </label>
           </section>
 
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-stage-2-title">II. 精准描述属性</h4>
-              <button id="attribute-add-row" class="secondary-button" type="button">添加属性</button>
+              <h4 id="attribute-stage-2-title">II. Descripción precisa del atributo</h4>
+              <button id="attribute-add-row" class="secondary-button" type="button">Añadir atributo</button>
             </div>
             <div id="attribute-description-grid" class="attribute-stack"></div>
           </section>
 
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-stage-3-title">III. 实现机制识别</h4>
+              <h4 id="attribute-stage-3-title">III. Identificación del mecanismo</h4>
             </div>
             <div id="attribute-mechanism-grid" class="attribute-stack"></div>
           </section>
 
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-stage-4-title">IV. 翻译为可能原料</h4>
+              <h4 id="attribute-stage-4-title">IV. Traducción a posibles materias primas</h4>
             </div>
             <div id="attribute-ingredient-grid" class="attribute-stack"></div>
           </section>
 
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-stage-5-title">V. 自由组合</h4>
-              <button id="attribute-add-combination" class="secondary-button" type="button">添加组合</button>
+              <h4 id="attribute-stage-5-title">V. Combinación libre</h4>
+              <button id="attribute-add-combination" class="secondary-button" type="button">Añadir combinación</button>
             </div>
             <div id="attribute-combinations-list" class="attribute-stack"></div>
           </section>
 
           <section class="attribute-card">
             <div class="attribute-card-head">
-              <h4 id="attribute-output-title">输出结果</h4>
+              <h4 id="attribute-output-title">Resultado de salida</h4>
             </div>
             <label>
-              <span id="attribute-output-target-label">输出到的 C 阶段元素</span>
+              <span id="attribute-output-target-label">Elemento de la etapa C al que se envía</span>
               <select id="attribute-output-target" name="outputTarget"></select>
             </label>
             <label>
-              <span id="attribute-output-label">准备输出回 C 阶段的结果</span>
+              <span id="attribute-output-label">Resultado preparado para devolver a la etapa C</span>
               <select id="attribute-output" name="outputSummary"></select>
             </label>
             <div>
-              <span id="attribute-alternatives-label">备选选项</span>
+              <span id="attribute-alternatives-label">Opciones alternativas</span>
               <div id="attribute-alternatives"></div>
             </div>
           </section>
         </form>
         <div class="dialog-actions">
-          <button id="apply-attribute-output" type="button">输出结果</button>
+          <button id="apply-attribute-output" type="button">Aplicar resultado</button>
         </div>
       </div>
     </dialog>
@@ -268,14 +268,14 @@
       <div class="rollback-form saved-records-shell">
         <div class="dialog-head">
           <div>
-            <p id="saved-records-eyebrow" class="eyebrow">已保存记录</p>
-            <h3 id="saved-records-title">读取</h3>
+            <p id="saved-records-eyebrow" class="eyebrow">Registros guardados</p>
+            <h3 id="saved-records-title">Abrir registro</h3>
           </div>
           <div class="dialog-actions">
-            <button id="close-saved-records" class="secondary-button" type="button">关闭</button>
+            <button id="close-saved-records" class="secondary-button" type="button">Cerrar</button>
           </div>
         </div>
-        <div id="saved-records-list" class="saved-records-list empty-state">正在读取本地记录…</div>
+        <div id="saved-records-list" class="saved-records-list empty-state">Cargando registros locales...</div>
       </div>
     </dialog>
 
