@@ -57,6 +57,46 @@
     return normalizedOrigin ? `${normalizedOrigin}${url}` : url;
   }
 
+  function getServerNextPath() {
+    if (window.location.protocol === "file:") {
+      return "/";
+    }
+    const pathname = window.location.pathname || "/";
+    const search = window.location.search || "";
+    return `${pathname}${search}`;
+  }
+
+  async function handleUnauthorizedResponse(response, origin) {
+    if (!response || response.status !== 401) {
+      return response;
+    }
+
+    const loginBase = normalizeOrigin(origin) || normalizeOrigin(window.location.origin);
+    if (!loginBase) {
+      return response;
+    }
+
+    let loginUrl = new URL("/login", loginBase);
+
+    try {
+      const payload = await response.clone().json();
+      if (payload?.login_url) {
+        loginUrl = new URL(payload.login_url, loginBase);
+      }
+    } catch {}
+
+    if (!loginUrl.searchParams.has("next")) {
+      loginUrl.searchParams.set("next", getServerNextPath());
+    }
+
+    const onLoginPage = window.location.pathname === "/login";
+    if (!onLoginPage) {
+      window.location.assign(loginUrl.toString());
+    }
+
+    return response;
+  }
+
   window.fetch = async function desktopFetch(input, init = {}) {
     const url = typeof input === "string" ? input : input?.url;
 
@@ -89,12 +129,18 @@
             ...init,
             method,
             headers,
-            body
+            body,
+            credentials: "include"
           });
 
           if (response.ok) {
             persistApiOrigin(origin);
             return response;
+          }
+
+          if (response.status === 401) {
+            persistApiOrigin(origin);
+            return handleUnauthorizedResponse(response, origin);
           }
 
           lastResponse = response;

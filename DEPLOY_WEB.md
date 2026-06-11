@@ -38,12 +38,28 @@ Default runtime values:
 - host: `0.0.0.0`
 - port: `8000`
 - database: `restaurant-database/restaurant.db`
+- auth password: disabled by default
 
 You can override them:
 
 ```bash
 LERA_PORT=8080 LERA_HOST=127.0.0.1 bash scripts/start-web.sh
 ```
+
+To protect the whole app with one password:
+
+```bash
+LERA_PORT=8080 \
+LERA_HOST=127.0.0.1 \
+LERA_AUTH_PASSWORD='your-password-here' \
+bash scripts/start-web.sh
+```
+
+When `LERA_AUTH_PASSWORD` is set:
+
+- every page requires login first
+- every `/api/*` endpoint also requires login
+- GitHub webhook deploy stays available
 
 ## 4. Open The App
 
@@ -70,6 +86,7 @@ Before enabling it, edit:
 - `WorkingDirectory=`
 - `Environment=LERA_ROOT=`
 - `Environment=LERA_DB_PATH=`
+- `Environment=LERA_AUTH_PASSWORD=`
 
 ## 6. Put nginx In Front
 
@@ -118,3 +135,4 @@ sudo systemctl restart lera
 - The desktop bridge is optional. In browser mode the app falls back to normal web behavior.
 - Printing uses browser printing when Electron APIs are not available.
 - Backup import/export already works in browser mode through `/api/backup`.
+- The password gate is server-side, not a fake frontend popup.

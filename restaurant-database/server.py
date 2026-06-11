@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import html
 import json
 import os
 import sqlite3
@@ -9,10 +10,11 @@ import subprocess
 import threading
 import time
 from datetime import datetime, timezone
+from http.cookies import CookieError, SimpleCookie
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 
 DEFAULT_ROOT = Path(__file__).resolve().parent.parent
@@ -25,6 +27,12 @@ DEPLOY_WEBHOOK_SECRET = os.environ.get("LERA_DEPLOY_WEBHOOK_SECRET", "")
 DEPLOY_REPO = os.environ.get("LERA_DEPLOY_REPO", "")
 DEPLOY_BRANCH = os.environ.get("LERA_DEPLOY_BRANCH", "main")
 DEPLOY_RESTART = os.environ.get("LERA_DEPLOY_RESTART", "1").strip().lower() not in {"0", "false", "no", "off"}
+AUTH_PASSWORD = os.environ.get("LERA_AUTH_PASSWORD", "")
+AUTH_SECRET = os.environ.get("LERA_AUTH_SECRET", "") or hashlib.sha256(
+    f"{ROOT}|{AUTH_PASSWORD}|{DEPLOY_WEBHOOK_SECRET}|{INSTANCE_ID}".encode("utf-8")
+).hexdigest()
+AUTH_COOKIE_NAME = "lera_session"
+AUTH_SESSION_TTL = max(3600, int(os.environ.get("LERA_AUTH_SESSION_TTL", "2592000")))
 BACKUP_DIR = Path(
     os.environ.get("LERA_BACKUP_DIR", str(ROOT / "backups"))
 ).expanduser().resolve()
@@ -42,6 +50,36 @@ HIDDEN_BACKUP_SLOTS = {
     "before-json-import": "hidden-before-json-import",
     "before-db-import": "hidden-before-db-import",
 }
+
+
+def is_auth_enabled() -> bool:
+    return bool(AUTH_PASSWORD)
+
+
+def build_auth_signature(expires_at: int) -> str:
+    return hmac.new(
+        AUTH_SECRET.encode("utf-8"),
+        str(expires_at).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def build_auth_token(expires_at: int) -> str:
+    return f"{expires_at}.{build_auth_signature(expires_at)}"
+
+
+def verify_auth_token(token: str) -> bool:
+    try:
+        expires_raw, signature = str(token or "").split(".", 1)
+        expires_at = int(expires_raw)
+    except (ValueError, AttributeError):
+        return False
+
+    if expires_at <= int(time.time()):
+        return False
+
+    expected = build_auth_signature(expires_at)
+    return hmac.compare_digest(signature, expected)
 
 
 def utc_now_iso() -> str:
@@ -433,12 +471,19 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def do_OPTIONS(self):
+        if self._should_handle_auth_options():
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self._send_cors_headers()
+            self.end_headers()
+            return
         self.send_response(HTTPStatus.NO_CONTENT)
         self._send_cors_headers()
         self.end_headers()
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/login":
+            return self._handle_login_page(parsed.query)
         if parsed.path == "/api/health":
             required_files = [
                 ROOT / "index.html",
@@ -463,6 +508,10 @@ class Handler(SimpleHTTPRequestHandler):
                     },
                 }
             )
+        if parsed.path == "/api/auth-status":
+            return self._handle_get_auth_status()
+        if not self._is_request_authorized(parsed):
+            return self._deny_unauthorized(parsed)
         if parsed.path == "/api/dishes":
             return self._handle_get_dishes(parsed.query)
         if parsed.path == "/api/subproducts":
@@ -485,6 +534,12 @@ class Handler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/deploy-webhook":
             return self._handle_deploy_webhook()
+        if parsed.path == "/api/login":
+            return self._handle_post_login(parsed.query)
+        if parsed.path == "/api/logout":
+            return self._handle_post_logout()
+        if not self._is_request_authorized(parsed):
+            return self._deny_unauthorized(parsed)
         if parsed.path == "/api/dishes":
             return self._handle_post_dish()
         if parsed.path == "/api/recipe":
@@ -505,6 +560,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_DELETE(self):
         parsed = urlparse(self.path)
+        if not self._is_request_authorized(parsed):
+            return self._deny_unauthorized(parsed)
         if parsed.path == "/api/dishes":
             return self._handle_delete_dishes(parsed.query)
         if parsed.path == "/api/recipe":
@@ -520,9 +577,227 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def _send_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self.headers.get("Origin", "").strip()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+        else:
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Credentials", "true")
+
+    def _should_handle_auth_options(self):
+        parsed = urlparse(self.path)
+        return parsed.path in {"/api/login", "/api/logout", "/api/auth-status"}
+
+    def _get_cookie_value(self, key: str) -> str:
+        raw_cookie = self.headers.get("Cookie", "")
+        if not raw_cookie:
+            return ""
+        try:
+            cookie = SimpleCookie()
+            cookie.load(raw_cookie)
+        except CookieError:
+            return ""
+        morsel = cookie.get(key)
+        return morsel.value if morsel else ""
+
+    def _is_authenticated(self) -> bool:
+        if not is_auth_enabled():
+            return True
+        token = self._get_cookie_value(AUTH_COOKIE_NAME)
+        return verify_auth_token(token)
+
+    def _is_request_authorized(self, parsed):
+        if not is_auth_enabled():
+            return True
+        if parsed.path in {"/login", "/api/login", "/api/auth-status"}:
+            return True
+        return self._is_authenticated()
+
+    def _login_redirect_target(self):
+        parsed = urlparse(self.path)
+        target = parsed.path or "/"
+        if parsed.query:
+            target = f"{target}?{parsed.query}"
+        if not target.startswith("/"):
+            target = "/"
+        if target == "/login":
+            target = "/"
+        return target
+
+    def _deny_unauthorized(self, parsed):
+        if parsed.path.startswith("/api/"):
+            return self._send_json(
+                {
+                    "ok": False,
+                    "error": "authentication-required",
+                    "login_url": f"/login?next={quote(self._login_redirect_target(), safe='')}",
+                },
+                status=HTTPStatus.UNAUTHORIZED,
+            )
+        self.send_response(HTTPStatus.SEE_OTHER)
+        self.send_header("Location", f"/login?next={quote(self._login_redirect_target(), safe='')}")
+        self.end_headers()
+        return None
+
+    def _set_auth_cookie(self, token: str):
+        self.send_header(
+            "Set-Cookie",
+            f"{AUTH_COOKIE_NAME}={token}; Max-Age={AUTH_SESSION_TTL}; Path=/; HttpOnly; SameSite=Lax",
+        )
+
+    def _clear_auth_cookie(self):
+        self.send_header(
+            "Set-Cookie",
+            f"{AUTH_COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+        )
+
+    def _render_login_html(self, next_path: str, error_message: str = "") -> bytes:
+        safe_next = next_path if next_path.startswith("/") else "/"
+        safe_error = html.escape(error_message)
+        body = f"""<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lera · Acceso</title>
+    <style>
+      :root {{
+        --bg: #ebe7de;
+        --panel: rgba(252, 249, 244, 0.94);
+        --line: rgba(48, 43, 37, 0.14);
+        --ink: #171510;
+        --muted: #666057;
+        --accent: #314b44;
+        --accent-strong: #243832;
+      }}
+      * {{ box-sizing: border-box; }}
+      body {{
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: "Times New Roman", Times, serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(49, 75, 68, 0.12), transparent 24%),
+          radial-gradient(circle at bottom right, rgba(120, 92, 54, 0.08), transparent 28%),
+          linear-gradient(180deg, #f1ede4 0%, #e7e1d7 100%);
+      }}
+      .login-panel {{
+        width: min(100%, 420px);
+        padding: 32px 30px 28px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: 0 18px 34px rgba(28, 22, 16, 0.06);
+      }}
+      .eyebrow {{
+        margin: 0 0 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--accent);
+      }}
+      h1 {{
+        margin: 0 0 10px;
+        font-size: 2.4rem;
+        line-height: 1.04;
+        font-weight: 400;
+      }}
+      p {{
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.55;
+      }}
+      label {{
+        display: grid;
+        gap: 8px;
+        font-size: 1rem;
+      }}
+      input {{
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.72);
+        color: var(--ink);
+        font: inherit;
+      }}
+      button {{
+        margin-top: 18px;
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 18px;
+        background: var(--accent);
+        color: #f8f5ee;
+        font: inherit;
+        font-size: 1rem;
+        cursor: pointer;
+      }}
+      button:hover {{ background: var(--accent-strong); }}
+      .error {{
+        min-height: 1.4em;
+        margin: 10px 0 0;
+        color: #9f2d1f;
+      }}
+    </style>
+  </head>
+  <body>
+    <main class="login-panel">
+      <p class="eyebrow">Metodología Lera</p>
+      <h1>Acceso protegido</h1>
+      <p>Introduce la contraseña para abrir la herramienta.</p>
+      <form method="post" action="/api/login?next={quote(safe_next, safe='/')}">
+        <label>
+          <span>Contraseña</span>
+          <input name="password" type="password" autocomplete="current-password" autofocus required />
+        </label>
+        <button type="submit">Entrar</button>
+      </form>
+      <p class="error">{safe_error}</p>
+    </main>
+  </body>
+</html>"""
+        return body.encode("utf-8")
+
+    def _handle_login_page(self, query):
+        if not is_auth_enabled():
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
+        if self._is_authenticated():
+            next_path = get_query_param(query, "next") or "/"
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", next_path if next_path.startswith("/") else "/")
+            self.end_headers()
+            return
+
+        next_path = get_query_param(query, "next") or "/"
+        error = get_query_param(query, "error")
+        message = "Contraseña incorrecta." if error == "invalid" else ""
+        body = self._render_login_html(next_path, message)
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _handle_get_auth_status(self):
+        enabled = is_auth_enabled()
+        authenticated = self._is_authenticated()
+        return self._send_json(
+            {
+                "ok": True,
+                "auth_enabled": enabled,
+                "authenticated": authenticated,
+            }
+        )
 
     def _read_body(self):
         length = int(self.headers.get("Content-Length", "0"))
@@ -552,6 +827,62 @@ class Handler(SimpleHTTPRequestHandler):
             os._exit(0)
 
         threading.Thread(target=delayed_exit, daemon=True).start()
+
+    def _handle_post_login(self, query):
+        if not is_auth_enabled():
+            return self._send_json({"ok": True, "auth_enabled": False})
+
+        content_type = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+        next_path = get_query_param(query, "next") or "/"
+        if not next_path.startswith("/"):
+            next_path = "/"
+
+        password = ""
+        if content_type == "application/json":
+            payload = self._read_json()
+            password = str(payload.get("password", ""))
+        else:
+            raw = self._read_body().decode("utf-8")
+            form = parse_qs(raw, keep_blank_values=True)
+            password = str((form.get("password") or [""])[0])
+
+        if not hmac.compare_digest(password, AUTH_PASSWORD):
+            if content_type == "application/json":
+                return self._send_json(
+                    {"ok": False, "error": "invalid-password"},
+                    status=HTTPStatus.FORBIDDEN,
+                )
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/login?next={quote(next_path, safe='')}&error=invalid")
+            self.end_headers()
+            return
+
+        token = build_auth_token(int(time.time()) + AUTH_SESSION_TTL)
+        if content_type == "application/json":
+            self.send_response(HTTPStatus.OK)
+            self._set_auth_cookie(token)
+            body = json.dumps({"ok": True, "next": next_path}, ensure_ascii=False).encode("utf-8")
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        self.send_response(HTTPStatus.SEE_OTHER)
+        self._set_auth_cookie(token)
+        self.send_header("Location", next_path)
+        self.end_headers()
+
+    def _handle_post_logout(self):
+        if not is_auth_enabled():
+            return self._send_json({"ok": True, "auth_enabled": False})
+        self.send_response(HTTPStatus.OK)
+        self._clear_auth_cookie()
+        body = json.dumps({"ok": True}, ensure_ascii=False).encode("utf-8")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _handle_deploy_webhook(self):
         if not DEPLOY_WEBHOOK_SECRET:

@@ -10,6 +10,7 @@
 - Web 启动脚本：`scripts/start-web.sh`
 - Web 部署说明：`DEPLOY_WEB.md`
 - Webhook 自动部署说明：`AUTO_DEPLOY_WEBHOOK.md`
+- 全局密码：通过服务器环境变量 `LERA_AUTH_PASSWORD` 开启
 
 ## 有用文件与作用
 
@@ -59,3 +60,4 @@
 - 前端页面仍然是当前这套 `html + css + js`。
 - 数据读写仍然通过 `restaurant-database/server.py` 暴露的 `/api/*` 完成。
 - 如果你准备上传 GitHub 并上线，优先看 `DEPLOY_WEB.md`。
+- 如果你想整站加一道密码门，在服务器环境里设置 `LERA_AUTH_PASSWORD` 即可。
