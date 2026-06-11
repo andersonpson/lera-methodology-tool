@@ -323,7 +323,8 @@
   width: 100%;
   min-height: 0;
   display: grid;
-  gap: 8px;
+  grid-template-rows: auto auto;
+  gap: 6px;
   padding: 13px 0;
   border: 0;
   border-bottom: 1px solid rgba(48, 43, 37, 0.1);
@@ -332,6 +333,7 @@
   box-shadow: none;
   color: var(--ink);
   text-align: left;
+  align-items: start;
 }
 
 .home-backup-item:hover {
@@ -350,9 +352,10 @@
 
 .home-backup-item-top {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .home-backup-item-body {
@@ -384,6 +387,7 @@
 
 .home-backup-item small {
   display: block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -571,7 +575,7 @@
   }
 
   .home-backup-item-top {
-    gap: 8px;
+    gap: 10px;
   }
 
   .home-backup-module .home-command-actions > * {
