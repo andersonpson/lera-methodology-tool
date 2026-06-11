@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="./database.css" />
   </head>
-  <body class="entry-page">
+  <body class="entry-page entry-is-loading">
     <div class="app-shell database-shell">
       <main class="workspace">
         <header class="topbar">
@@ -26,7 +26,7 @@
           </div>
         </header>
 
-        <section class="dashboard-card">
+        <section class="dashboard-card" id="entry-dashboard-card">
           <div class="panel-header">
             <div>
               <p id="form-eyebrow" class="eyebrow">Registro</p>
@@ -34,7 +34,15 @@
             </div>
           </div>
 
-          <div id="dish-form-grid" class="entry-form-shell">
+          <div id="entry-loading-block" class="entry-loading-block" aria-hidden="true">
+            <span class="entry-loading-bar entry-loading-bar-wide"></span>
+            <span class="entry-loading-bar"></span>
+            <span class="entry-loading-bar entry-loading-bar-short"></span>
+            <span class="entry-loading-bar"></span>
+            <span class="entry-loading-bar entry-loading-bar-wide"></span>
+          </div>
+
+          <div id="dish-form-grid" class="entry-form-shell entry-ready-only">
             <section class="field-group">
               <div class="entry-section-head">
                 <p id="identity-eyebrow" class="eyebrow">Identificación básica</p>
@@ -75,10 +83,6 @@
                 <h4 id="foundation-label">Fundamento creativo F</h4>
               </div>
               <div id="foundation-builder" class="foundation-builder">
-                <div class="foundation-card foundation-card-placeholder">
-                  <div class="foundation-card-label">F</div>
-                  <div class="support-copy">Cargando opciones...</div>
-                </div>
               </div>
               <div id="foundation-note" class="support-copy top-gap-sm"></div>
               <div id="foundation-helper" class="foundation-preview top-gap-sm">No seleccionado</div>
@@ -90,10 +94,6 @@
                 <h4 id="product-label">Materia prima P</h4>
               </div>
               <div id="product-builder" class="foundation-builder">
-                <div class="foundation-card foundation-card-placeholder">
-                  <div class="foundation-card-label">P</div>
-                  <div class="support-copy">Cargando opciones...</div>
-                </div>
               </div>
               <div id="product-note" class="support-copy top-gap-sm"></div>
               <div id="product-helper" class="foundation-preview top-gap-sm">No seleccionado</div>
@@ -117,9 +117,7 @@
                   <span id="methodology-records-label">Registros de uso metodológico</span>
                   <div class="code-preview-card">
                     <div id="methodology-records-note" class="support-copy"></div>
-                    <div id="methodology-records-list" class="methodology-records-list top-gap-sm">
-                      <div class="support-copy">Cargando registros...</div>
-                    </div>
+                    <div id="methodology-records-list" class="methodology-records-list top-gap-sm"></div>
                     <div class="button-stack top-gap-sm">
                       <button id="add-methodology-record-button" class="secondary-button" type="button">Añadir registro metodológico</button>
                     </div>
@@ -137,8 +135,8 @@
                 <label class="span-all">
                   <span id="recipe-entry-inline-label">Registro de receta</span>
                   <div class="code-preview-card">
-                    <div id="recipe-status" class="support-copy">Cargando receta...</div>
-                    <div id="recipe-summary" class="code-preview-value">Sin datos todavía.</div>
+                    <div id="recipe-status" class="support-copy"></div>
+                    <div id="recipe-summary" class="code-preview-value"></div>
                     <div class="button-stack top-gap-sm">
                       <button id="open-recipe-button" class="secondary-button" type="button">Abrir registro de receta</button>
                       <button id="delete-recipe-button" class="secondary-button" type="button">Eliminar receta</button>
@@ -153,12 +151,12 @@
             </section>
           </div>
 
-          <div class="button-stack top-gap">
+          <div class="button-stack top-gap entry-ready-only">
             <a id="back-detail-link" href="./catalog.html" class="secondary-button nav-link" hidden>Volver</a>
             <button id="save-dish-button" class="secondary-button" type="button">Guardar plato</button>
             <button id="reset-form-button" class="secondary-button" type="button">Limpiar formulario</button>
           </div>
-          <div id="form-feedback" class="support-copy top-gap-sm"></div>
+          <div id="form-feedback" class="support-copy top-gap-sm entry-ready-only"></div>
         </section>
       </main>
     </div>

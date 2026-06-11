@@ -669,6 +669,43 @@
   gap: 14px;
 }
 
+.entry-loading-block {
+  display: none;
+  gap: 12px;
+  padding: 6px 0 0;
+}
+
+.entry-loading-bar {
+  display: block;
+  width: 100%;
+  height: 48px;
+  border-top: 1px solid rgba(48, 43, 37, 0.14);
+  background:
+    linear-gradient(90deg, rgba(49, 75, 68, 0.04) 0%, rgba(49, 75, 68, 0.12) 50%, rgba(49, 75, 68, 0.04) 100%);
+  background-size: 200% 100%;
+  animation: entryLoadingShift 1.2s linear infinite;
+}
+
+.entry-loading-bar-wide {
+  height: 74px;
+}
+
+.entry-loading-bar-short {
+  width: 68%;
+}
+
+.entry-page.entry-is-loading .entry-ready-only {
+  display: none !important;
+}
+
+.entry-page.entry-is-loading .entry-loading-block {
+  display: grid;
+}
+
+.entry-page:not(.entry-is-loading) .entry-loading-block {
+  display: none;
+}
+
 .entry-section-head {
   display: grid;
   gap: 4px;
@@ -697,6 +734,16 @@
 
 .entry-form-shell .field-group > .foundation-builder {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+@keyframes entryLoadingShift {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .methodology-report-stage {

@@ -218,35 +218,35 @@ const methodologyRecordsList = document.getElementById("methodology-records-list
 const recipeStatus = document.getElementById("recipe-status");
 const recipeSummary = document.getElementById("recipe-summary");
 const RECIPE_SYNC_KEY = "lera-recipe-sync";
+const loadingBody = document.body;
 
 populateMonthOptions();
 bindEvents();
 init();
 
 async function init() {
-  renderLanguage();
-  renderMethodologyRecords();
-  renderRecipeStatus();
-  renderCodePreview();
   applyEntryContext();
   renderLanguage();
-  renderMethodologyRecords();
-  renderRecipeStatus();
-  renderCodePreview();
-  const [dishes, codebook, methodologyProjects] = await Promise.all([
-    fetchDishes(),
-    fetchCodebook(),
-    fetchMethodologyProjects()
-  ]);
-  state.apiAvailable = dishes !== null && codebook !== null && methodologyProjects !== null;
-  state.dishes = dishes || [];
-  state.codebook = codebook || [];
-  state.methodologyProjects = methodologyProjects || [];
-  await hydrateMethodologyRecords();
-  renderLanguage();
-  populateCodebookFields();
-  await loadRecipe();
-  render();
+  try {
+    const [dishes, codebook, methodologyProjects] = await Promise.all([
+      fetchDishes(),
+      fetchCodebook(),
+      fetchMethodologyProjects()
+    ]);
+    state.apiAvailable = dishes !== null && codebook !== null && methodologyProjects !== null;
+    state.dishes = dishes || [];
+    state.codebook = codebook || [];
+    state.methodologyProjects = methodologyProjects || [];
+    await hydrateMethodologyRecords();
+    populateCodebookFields();
+    await loadRecipe();
+  } catch (error) {
+    console.error(error);
+    state.apiAvailable = false;
+  } finally {
+    render();
+    loadingBody.classList.remove("entry-is-loading");
+  }
 }
 
 function applyEntryContext() {
