@@ -28,11 +28,20 @@ DEPLOY_RESTART = os.environ.get("LERA_DEPLOY_RESTART", "1").strip().lower() not 
 BACKUP_DIR = Path(
     os.environ.get("LERA_BACKUP_DIR", str(ROOT / "backups"))
 ).expanduser().resolve()
-BACKUP_RETENTION = max(5, int(os.environ.get("LERA_BACKUP_RETENTION", "30")))
 AUTO_BACKUP_INTERVAL_SECONDS = max(
     3600, int(os.environ.get("LERA_AUTO_BACKUP_INTERVAL_SECONDS", "43200"))
 )
 BACKUP_LOCK = threading.RLock()
+VISIBLE_BACKUP_SLOTS = {
+    "auto": ("auto-1", "auto-2"),
+    "manual": ("manual-1", "manual-2"),
+}
+VISIBLE_BACKUP_SLOT_SET = {slot for slots in VISIBLE_BACKUP_SLOTS.values() for slot in slots}
+HIDDEN_BACKUP_SLOTS = {
+    "before-restore": "hidden-before-restore",
+    "before-json-import": "hidden-before-json-import",
+    "before-db-import": "hidden-before-db-import",
+}
 
 
 def utc_now_iso() -> str:
@@ -49,35 +58,95 @@ def normalize_backup_source(value: str) -> str:
     return normalized or "manual"
 
 
-def build_backup_filename(source: str) -> str:
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
-    return f"lera-backup-{timestamp}__{normalize_backup_source(source)}.db"
+def build_backup_filename(slot_name: str) -> str:
+    return f"lera-backup-slot-{normalize_backup_source(slot_name)}.db"
 
 
-def detect_backup_source(path: Path) -> str:
-    suffix = path.stem.split("__", 1)
-    if len(suffix) == 2 and suffix[1].strip():
-        return suffix[1].strip()
-    return "manual"
+def parse_backup_slot(path: Path) -> str:
+    stem = path.stem
+    prefix = "lera-backup-slot-"
+    if stem.startswith(prefix):
+        return stem[len(prefix):]
+    return ""
 
 
 def snapshot_metadata(path: Path) -> dict:
     stat = path.stat()
     created_at = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
+    slot_name = parse_backup_slot(path)
+    slot_kind, slot_index = parse_slot_label(slot_name)
     return {
         "id": path.name,
         "filename": path.name,
-        "source": detect_backup_source(path),
+        "source": slot_kind or "manual",
+        "slot_name": slot_name,
+        "slot_kind": slot_kind,
+        "slot_index": slot_index,
         "created_at": created_at.isoformat().replace("+00:00", "Z"),
         "created_at_epoch": int(stat.st_mtime),
         "size_bytes": stat.st_size,
     }
 
 
+def parse_slot_label(slot_name: str) -> tuple[str, int]:
+    cleaned = str(slot_name or "").strip().lower()
+    if cleaned.startswith("auto-"):
+        suffix = cleaned.split("-", 1)[1]
+        return "auto", int(suffix) if suffix.isdigit() else 0
+    if cleaned.startswith("manual-"):
+        suffix = cleaned.split("-", 1)[1]
+        return "manual", int(suffix) if suffix.isdigit() else 0
+    return "", 0
+
+
+def get_slot_path(slot_name: str) -> Path:
+    ensure_backup_dir()
+    return BACKUP_DIR / build_backup_filename(slot_name)
+
+
+def get_visible_slot_paths(kind: str) -> list[Path]:
+    return [get_slot_path(slot_name) for slot_name in VISIBLE_BACKUP_SLOTS[kind]]
+
+
+def choose_visible_slot(source: str) -> str:
+    normalized = normalize_backup_source(source)
+    if normalized not in VISIBLE_BACKUP_SLOTS:
+        normalized = "manual"
+    candidates = get_visible_slot_paths(normalized)
+    existing = [path for path in candidates if path.exists()]
+    if len(existing) < len(candidates):
+        return next(path for path in candidates if not path.exists()).stem.replace("lera-backup-slot-", "")
+    oldest = min(existing, key=lambda item: item.stat().st_mtime)
+    return parse_backup_slot(oldest)
+
+
+def migrate_visible_snapshots_if_needed() -> None:
+    if any(path.exists() for kind in VISIBLE_BACKUP_SLOTS for path in get_visible_slot_paths(kind)):
+        return
+
+    legacy_candidates = []
+    for path in sorted(BACKUP_DIR.glob("lera-backup-*.db"), key=lambda item: item.stat().st_mtime, reverse=True):
+        if path.name.startswith("lera-backup-slot-"):
+            continue
+        stem = path.stem
+        if "__" not in stem:
+            continue
+        source = stem.rsplit("__", 1)[1].strip().lower()
+        legacy_candidates.append((source, path))
+
+    for kind, slots in VISIBLE_BACKUP_SLOTS.items():
+        matches = [path for source, path in legacy_candidates if source == kind][: len(slots)]
+        for slot_name, legacy_path in zip(slots, reversed(matches)):
+            target_path = get_slot_path(slot_name)
+            target_path.write_bytes(legacy_path.read_bytes())
+            os.utime(target_path, (legacy_path.stat().st_atime, legacy_path.stat().st_mtime))
+
+
 def list_backup_snapshots() -> list[dict]:
     ensure_backup_dir()
+    migrate_visible_snapshots_if_needed()
     snapshots = []
-    for path in sorted(BACKUP_DIR.glob("lera-backup-*.db"), key=lambda item: item.stat().st_mtime, reverse=True):
+    for path in sorted((get_slot_path(slot) for slot in VISIBLE_BACKUP_SLOT_SET if get_slot_path(slot).exists()), key=lambda item: item.stat().st_mtime, reverse=True):
         snapshots.append(snapshot_metadata(path))
     return snapshots
 
@@ -90,18 +159,9 @@ def get_backup_snapshot_summary() -> dict:
         "snapshots": snapshots,
         "latest_auto": latest_auto,
         "latest_manual": latest_manual,
-        "retention": BACKUP_RETENTION,
+        "retention": 4,
         "auto_interval_seconds": AUTO_BACKUP_INTERVAL_SECONDS,
     }
-
-
-def prune_backup_snapshots() -> None:
-    snapshots = list_backup_snapshots()
-    for item in snapshots[BACKUP_RETENTION:]:
-        try:
-            resolve_backup_snapshot_path(item["id"]).unlink(missing_ok=True)
-        except FileNotFoundError:
-            continue
 
 
 def resolve_backup_snapshot_path(snapshot_id: str) -> Path:
@@ -109,12 +169,20 @@ def resolve_backup_snapshot_path(snapshot_id: str) -> Path:
     candidate = (BACKUP_DIR / Path(snapshot_id).name).resolve()
     if candidate.parent != BACKUP_DIR or not candidate.exists() or candidate.suffix.lower() != ".db":
         raise FileNotFoundError(snapshot_id)
+    if parse_backup_slot(candidate) not in VISIBLE_BACKUP_SLOT_SET:
+        raise FileNotFoundError(snapshot_id)
     return candidate
 
 
 def create_backup_snapshot(source: str = "manual") -> dict:
     ensure_backup_dir()
-    target_path = BACKUP_DIR / build_backup_filename(source)
+    normalized = normalize_backup_source(source)
+    if normalized in VISIBLE_BACKUP_SLOTS:
+        slot_name = choose_visible_slot(normalized)
+        target_path = get_slot_path(slot_name)
+    else:
+        hidden_slot = HIDDEN_BACKUP_SLOTS.get(normalized, f"hidden-{normalized}")
+        target_path = get_slot_path(hidden_slot)
     source_conn = None
     target_conn = None
     with BACKUP_LOCK:
@@ -127,7 +195,6 @@ def create_backup_snapshot(source: str = "manual") -> dict:
                 target_conn.close()
             if source_conn is not None:
                 source_conn.close()
-    prune_backup_snapshots()
     return snapshot_metadata(target_path)
 
 

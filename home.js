@@ -53,6 +53,8 @@ const state = {
   }
 };
 
+const BACKUP_SLOT_ORDER = ["auto-1", "auto-2", "manual-1", "manual-2"];
+
 const i18n = {
   zh: {
     htmlLang: "zh-CN",
@@ -110,6 +112,10 @@ const i18n = {
     backupImportDbFailed: "DB 读取失败",
     backupListEyebrow: "",
     backupListTitle: "保存记录",
+    backupSlotAuto1: "自动保存 1",
+    backupSlotAuto2: "自动保存 2",
+    backupSlotManual1: "手动保存 1",
+    backupSlotManual2: "手动保存 2",
     backupDefaultNote: "",
     backupEmptyNote: "",
     backupLegacyNote: "",
@@ -194,6 +200,10 @@ const i18n = {
     backupImportDbFailed: "No se pudo importar la DB",
     backupListEyebrow: "",
     backupListTitle: "Registros guardados",
+    backupSlotAuto1: "Guardado automático 1",
+    backupSlotAuto2: "Guardado automático 2",
+    backupSlotManual1: "Guardado manual 1",
+    backupSlotManual2: "Guardado manual 2",
     backupDefaultNote: "",
     backupEmptyNote: "",
     backupLegacyNote: "",
@@ -361,28 +371,25 @@ function renderBackupList() {
     return;
   }
 
-  if (!backup.snapshots.length) {
-    elements.backupList.innerHTML = `<p class="home-backup-empty">${escapeHtml(copy.backupNoList)}</p>`;
-    return;
-  }
-
   const selectedId = backup.selectedSnapshotId;
-  elements.backupList.innerHTML = backup.snapshots
+  const slots = getRenderableBackupSlots();
+  elements.backupList.innerHTML = slots
     .map((snapshot) => {
-      const activeClass = snapshot.id === selectedId ? " is-selected" : "";
+      const isEmpty = !snapshot?.id;
+      const activeClass = snapshot?.id && snapshot.id === selectedId ? " is-selected" : "";
       return `
         <button
           type="button"
           class="home-backup-item${activeClass}"
-          data-snapshot-id="${escapeHtml(snapshot.id)}"
+          ${snapshot?.id ? `data-snapshot-id="${escapeHtml(snapshot.id)}"` : ""}
+          ${isEmpty ? "disabled" : ""}
         >
           <div class="home-backup-item-top">
-            <span class="home-backup-source">${escapeHtml(formatSnapshotSource(snapshot.source))}</span>
-            <span class="home-backup-size">${escapeHtml(formatBytes(snapshot.size_bytes))}</span>
+            <span class="home-backup-source">${escapeHtml(formatSnapshotSlot(snapshot))}</span>
+            <span class="home-backup-size">${escapeHtml(isEmpty ? copy.backupNoData : formatBytes(snapshot.size_bytes))}</span>
           </div>
           <div class="home-backup-item-body">
-            <strong>${escapeHtml(formatSnapshotDate(snapshot.created_at))}</strong>
-            <small>${escapeHtml(snapshot.filename)}</small>
+            <strong>${escapeHtml(isEmpty ? copy.backupNoData : formatSnapshotDate(snapshot.created_at))}</strong>
           </div>
         </button>
       `;
@@ -437,6 +444,7 @@ async function createBackupSnapshot() {
     });
     state.backup.supported = true;
     applyBackupSummary(payload);
+    state.backup.selectedSnapshotId = payload?.snapshot?.id || state.backup.selectedSnapshotId;
     setStatus(copy.backupCreated);
   } catch (error) {
     console.error(error);
@@ -514,11 +522,12 @@ async function importJsonBackup(event) {
   try {
     if (isDbBackupFile(file)) {
       const arrayBuffer = await file.arrayBuffer();
-      await requestJson("/api/backup-restore-db", {
+      const payload = await requestJson("/api/backup-restore-db", {
         method: "POST",
         headers: { "Content-Type": "application/octet-stream", "X-Backup-Filename": file.name },
         body: arrayBuffer
       });
+      applyBackupSummary(payload);
       setStatus(copy.backupImportedDb);
     } else {
       const text = await file.text();
@@ -604,7 +613,7 @@ function cancelRestore() {
 }
 
 function applyBackupSummary(payload) {
-  const snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  const snapshots = normalizeSnapshotOrder(Array.isArray(payload?.snapshots) ? payload.snapshots : []);
   const selectedStillExists = snapshots.some((item) => item.id === state.backup.selectedSnapshotId);
 
   state.backup.snapshots = snapshots;
@@ -628,7 +637,8 @@ function syncRestoreSelect() {
   const previousValue = state.backup.selectedSnapshotId;
   restoreSelect.innerHTML = "";
 
-  if (!state.backup.snapshots.length) {
+  const filledSnapshots = state.backup.snapshots.filter((snapshot) => snapshot?.id);
+  if (!filledSnapshots.length) {
     const option = document.createElement("option");
     option.value = "";
     option.textContent = copy.backupNoList;
@@ -637,16 +647,16 @@ function syncRestoreSelect() {
     return;
   }
 
-  for (const snapshot of state.backup.snapshots) {
+  for (const snapshot of filledSnapshots) {
     const option = document.createElement("option");
     option.value = snapshot.id;
-    option.textContent = `${formatSnapshotSource(snapshot.source)} · ${formatSnapshotDate(snapshot.created_at)}`;
+    option.textContent = `${formatSnapshotSlot(snapshot)} · ${formatSnapshotDate(snapshot.created_at)}`;
     restoreSelect.append(option);
   }
 
-  restoreSelect.value = state.backup.snapshots.some((item) => item.id === previousValue)
+  restoreSelect.value = filledSnapshots.some((item) => item.id === previousValue)
     ? previousValue
-    : state.backup.snapshots[0].id;
+    : filledSnapshots[0].id;
   state.backup.selectedSnapshotId = restoreSelect.value;
 }
 
@@ -713,6 +723,37 @@ function formatSnapshotSource(source) {
   if (normalized === "before-restore") return copy.backupSourceBeforeRestore;
   if (normalized === "before-json-import") return copy.backupSourceBeforeJsonImport;
   return copy.backupSourceFallback;
+}
+
+function formatSnapshotSlot(snapshot) {
+  const copy = getCopy();
+  const slotName = String(snapshot?.slot_name || "").trim().toLowerCase();
+  const kind = String(snapshot?.slot_kind || snapshot?.source || "").trim().toLowerCase();
+  const index = Number(snapshot?.slot_index || 0);
+  if (slotName === "auto-1") return copy.backupSlotAuto1;
+  if (slotName === "auto-2") return copy.backupSlotAuto2;
+  if (slotName === "manual-1") return copy.backupSlotManual1;
+  if (slotName === "manual-2") return copy.backupSlotManual2;
+  if (kind === "auto" && index === 1) return copy.backupSlotAuto1;
+  if (kind === "auto" && index === 2) return copy.backupSlotAuto2;
+  if (kind === "manual" && index === 1) return copy.backupSlotManual1;
+  if (kind === "manual" && index === 2) return copy.backupSlotManual2;
+  return formatSnapshotSource(kind);
+}
+
+function normalizeSnapshotOrder(snapshots) {
+  return [...snapshots].sort((left, right) => {
+    const leftIndex = BACKUP_SLOT_ORDER.indexOf(String(left?.slot_name || "").toLowerCase());
+    const rightIndex = BACKUP_SLOT_ORDER.indexOf(String(right?.slot_name || "").toLowerCase());
+    return (leftIndex === -1 ? 99 : leftIndex) - (rightIndex === -1 ? 99 : rightIndex);
+  });
+}
+
+function getRenderableBackupSlots() {
+  const bySlot = new Map(
+    state.backup.snapshots.map((snapshot) => [String(snapshot?.slot_name || "").toLowerCase(), snapshot])
+  );
+  return BACKUP_SLOT_ORDER.map((slotName) => bySlot.get(slotName) || { slot_name: slotName });
 }
 
 function formatBytes(value) {
