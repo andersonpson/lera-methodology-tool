@@ -44,6 +44,7 @@
 
     if (/^https?:$/.test(window.location.protocol)) {
       pushCandidate(window.location.origin);
+      pushCandidate(`${window.location.protocol}//${window.location.hostname}:8080`);
     }
 
     FILE_FALLBACK_API_ORIGINS.forEach(pushCandidate);
@@ -79,33 +80,41 @@
         });
       }
 
-      if (window.location.protocol === "file:") {
-        let lastError = null;
+      let lastError = null;
+      let lastResponse = null;
 
-        for (const origin of getApiOriginCandidates()) {
-          try {
-            const response = await originalFetch(toAbsoluteApiUrl(url, origin), {
-              ...init,
-              method,
-              headers,
-              body
-            });
+      for (const origin of getApiOriginCandidates()) {
+        try {
+          const response = await originalFetch(toAbsoluteApiUrl(url, origin), {
+            ...init,
+            method,
+            headers,
+            body
+          });
 
-            if (!response.ok && (upperMethod === "GET" || upperMethod === "HEAD")) {
-              lastError = new Error(`API request failed at ${origin}${url} with status ${response.status}`);
-              continue;
-            }
-
+          if (response.ok) {
             persistApiOrigin(origin);
             return response;
-          } catch (error) {
-            lastError = error;
           }
-        }
 
-        if (lastError) {
-          throw lastError;
+          lastResponse = response;
+
+          if (upperMethod !== "GET" && upperMethod !== "HEAD") {
+            continue;
+          }
+
+          lastError = new Error(`API request failed at ${origin}${url} with status ${response.status}`);
+        } catch (error) {
+          lastError = error;
         }
+      }
+
+      if (lastResponse) {
+        return lastResponse;
+      }
+
+      if (lastError) {
+        throw lastError;
       }
     }
 
