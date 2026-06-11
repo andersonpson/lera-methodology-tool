@@ -105,6 +105,9 @@ const i18n = {
     backupCancelRestore: "取消",
     backupImportJson: "读取旧 JSON",
     backupImportDb: "读取 DB",
+    backupImportDbBusy: "正在读取 DB…",
+    backupImportedDb: "DB 已读取",
+    backupImportDbFailed: "DB 读取失败",
     backupListEyebrow: "",
     backupListTitle: "保存记录",
     backupDefaultNote: "",
@@ -186,6 +189,9 @@ const i18n = {
     backupCancelRestore: "Cancelar",
     backupImportJson: "Abrir JSON antiguo",
     backupImportDb: "Abrir DB",
+    backupImportDbBusy: "Abriendo DB…",
+    backupImportedDb: "DB importada",
+    backupImportDbFailed: "No se pudo importar la DB",
     backupListEyebrow: "",
     backupListTitle: "Registros guardados",
     backupDefaultNote: "",
@@ -484,7 +490,7 @@ async function openDbBackup() {
   if (state.backup.busy) return;
 
   if (desktopBridge?.importBackupDb && state.backup.supported === false) {
-    setStatus(copy.backupImportBusy);
+    setStatus(copy.backupImportDbBusy);
     const result = await desktopBridge.importBackupDb();
     handleDesktopLegacyStatus(result?.status);
     return;
@@ -500,7 +506,7 @@ async function importJsonBackup(event) {
   const copy = getCopy();
   state.backup.busy = "import-json";
   state.backup.restoreArmed = false;
-  setStatus(copy.backupImportBusy);
+  setStatus(isDbBackupFile(file) ? copy.backupImportDbBusy : copy.backupImportBusy);
   renderBackupPanel();
 
   try {
@@ -511,7 +517,7 @@ async function importJsonBackup(event) {
         headers: { "Content-Type": "application/octet-stream", "X-Backup-Filename": file.name },
         body: arrayBuffer
       });
-      setStatus(copy.backupImported);
+      setStatus(copy.backupImportedDb);
     } else {
       const text = await file.text();
       const payload = JSON.parse(text);
@@ -527,7 +533,7 @@ async function importJsonBackup(event) {
     }
   } catch (error) {
     console.error(error);
-    setStatus(copy.backupImportFailed);
+    setStatus(isDbBackupFile(file) ? copy.backupImportDbFailed : copy.backupImportFailed);
   } finally {
     state.backup.busy = "";
     if (event.target) event.target.value = "";
